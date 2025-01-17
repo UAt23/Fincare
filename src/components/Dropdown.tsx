@@ -28,6 +28,7 @@ type Props = {
   onAddNew?: (value: string) => void;
   compact?: boolean;
   renderOption?: (option: Option) => React.ReactNode;
+  isDark?: boolean;
 };
 
 export default function Dropdown({ 
@@ -40,6 +41,7 @@ export default function Dropdown({
   onAddNew,
   compact = false,
   renderOption,
+  isDark = false,
 }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [newValue, setNewValue] = useState('');
@@ -94,16 +96,22 @@ export default function Dropdown({
     return (
       <>
         <TouchableOpacity 
-          style={styles.compactSelector}
+          style={[
+            styles.compactSelector,
+            isDark && styles.darkMode.button
+          ]}
           onPress={showModal}
         >
-          <Text style={styles.compactValue}>
-            {selectedOption?.extraData?.symbol || selectedOption?.value || placeholder}
+          <Text style={[
+            styles.compactValue,
+            isDark && styles.darkMode.buttonText
+          ]}>
+            {selectedOption?.label || placeholder}
           </Text>
           <Ionicons 
             name="chevron-down" 
             size={16} 
-            color={colors.textTertiary} 
+            color={isDark ? colors.textLight : colors.textTertiary} 
           />
         </TouchableOpacity>
 
@@ -481,15 +489,41 @@ const styles = StyleSheet.create({
   compactSelector: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRightWidth: 1,
-    borderRightColor: colors.border,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: colors.cardLight,
   },
   compactValue: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.textPrimary,
     marginRight: 4,
+  },
+  darkMode: {
+    button: {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      borderColor: 'rgba(255, 255, 255, 0.2)',
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+    },
+    buttonText: {
+      color: colors.textLight,
+      fontSize: 14,
+    },
+    icon: {
+      color: colors.textLight,
+    },
+    modal: {
+      backgroundColor: colors.card,
+    },
+    option: {
+      borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    optionText: {
+      color: colors.textLight,
+    },
   },
 }); 

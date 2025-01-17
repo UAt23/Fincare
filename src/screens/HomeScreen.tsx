@@ -1,17 +1,22 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../hooks/useAppStore';
 import { fetchTransactions } from '../store/transactionsSlice';
 import TransactionsList from '../components/TransactionsList';
 import { useNavigation } from '@react-navigation/native';
+import Dropdown from '../components/Dropdown';
+import ExpenseBarChart from '../components/ExpenseBarChart';
+
+type Period = 'week' | 'month';
 
 export default function HomeScreen() {
   const dispatch = useAppDispatch();
   const { items: transactions, loading } = useAppSelector((state) => state.transactions);
   const navigation = useNavigation();
   const { currency } = useAppSelector(state => state.settings);
+  const [selectedPeriod, setSelectedPeriod] = useState<Period>('month');
 
   useEffect(() => {
     dispatch(fetchTransactions(10));
@@ -45,6 +50,99 @@ export default function HomeScreen() {
     return Object.entries(groups);
   }, [transactions]);
 
+  const periodOptions = [
+    { label: 'This Week', value: 'week' },
+    { label: 'This Month', value: 'month' },
+  ];
+
+  const { totalExpenses: periodTotalExpenses, chartData } = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const currentDate = now.getDate();
+    const currentDay = now.getDay();
+
+    const getDateRange = () => {
+      if (selectedPeriod === 'week') {
+        const startDate = new Date(currentYear, currentMonth, currentDate - currentDay);
+        const endDate = new Date(currentYear, currentMonth, currentDate + (6 - currentDay));
+        return { startDate, endDate };
+      } else {
+        const startDate = new Date(currentYear, currentMonth, 1);
+        const endDate = new Date(currentYear, currentMonth + 1, 0);
+        return { startDate, endDate };
+      }
+    };
+
+    const { startDate, endDate } = getDateRange();
+
+    // Filter transactions for the selected period
+    const filteredTransactions = transactions.filter(t => {
+      const txDate = new Date(t.date);
+      return (
+        t.type === 'expense' &&
+        txDate >= startDate &&
+        txDate <= endDate
+      );
+    });
+
+    const total = filteredTransactions.reduce((sum, t) => sum + t.amount, 0);
+
+    // Generate chart data
+    const generateChartData = () => {
+      if (selectedPeriod === 'week') {
+        return Array(7).fill(0).map((_, index) => {
+          const day = new Date(startDate);
+          day.setDate(startDate.getDate() + index);
+          
+          const dayExpenses = filteredTransactions
+            .filter(t => {
+              const txDate = new Date(t.date);
+              return (
+                txDate.getFullYear() === day.getFullYear() &&
+                txDate.getMonth() === day.getMonth() &&
+                txDate.getDate() === day.getDate()
+              );
+            })
+            .reduce((sum, t) => sum + t.amount, 0);
+
+          return {
+            value: dayExpenses,
+            label: day.toLocaleDateString('en-US', { weekday: 'short' }),
+            date: day,
+          };
+        });
+      } else {
+        const daysInMonth = endDate.getDate();
+        return Array(daysInMonth).fill(0).map((_, index) => {
+          const day = new Date(currentYear, currentMonth, index + 1);
+          
+          const dayExpenses = filteredTransactions
+            .filter(t => {
+              const txDate = new Date(t.date);
+              return (
+                txDate.getFullYear() === day.getFullYear() &&
+                txDate.getMonth() === day.getMonth() &&
+                txDate.getDate() === day.getDate()
+              );
+            })
+            .reduce((sum, t) => sum + t.amount, 0);
+
+          return {
+            value: dayExpenses,
+            label: String(index + 1),
+            date: day,
+          };
+        });
+      }
+    };
+
+    return {
+      totalExpenses: total,
+      chartData: generateChartData(),
+    };
+  }, [transactions, selectedPeriod]);
+
   return (
     <ScrollView 
       style={styles.container}
@@ -65,12 +163,27 @@ export default function HomeScreen() {
       <View style={styles.outcomeCard}>
         <Text style={styles.outcomeLabel}>Total Expenses</Text>
         <Text style={styles.outcomeAmount}>
-          {currency.symbol}{totalExpenses.toFixed(2)}
+          {currency.symbol}{periodTotalExpenses.toFixed(2)}
         </Text>
         <View style={styles.chart}>
-          {/* Chart will be implemented later */}
+          <ExpenseBarChart 
+            data={chartData}
+            maxValue={Math.max(...chartData.map(d => d.value), 1)}
+            height={120}
+            period={selectedPeriod}
+            currency={currency}
+          />
         </View>
-        <Text style={styles.periodLabel}>This Month</Text>
+        <View style={styles.periodSelector}>
+          <Dropdown
+            value={selectedPeriod}
+            options={periodOptions}
+            onChange={(value) => setSelectedPeriod(value as Period)}
+            compact
+            isDark
+            placeholder="This Month"
+          />
+        </View>
       </View>
 
       <View style={styles.transactionsContainer}>
@@ -230,5 +343,8 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 13,
     color: colors.textTertiary,
+  },
+  periodSelector: {
+    marginTop: 16,
   },
 }); 

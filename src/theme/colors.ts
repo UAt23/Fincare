@@ -23,11 +23,10 @@ export const colors = {
   
   // Chart Colors
   chart: {
-    yellow: '#FFD60A',
-    purple: '#7F00FF',
-    blue: '#246BFD',
-    green: '#30DB5B',
-    orange: '#FF9500',
+    primary: 'rgba(255, 255, 255, 0.8)',
+    secondary: 'rgba(255, 255, 255, 0.4)',
+    green: '#4CAF50',
+    red: '#F44336',
   },
   
   // Tab Bar

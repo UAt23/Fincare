@@ -34,6 +34,38 @@ export default function TransactionsList({ transactions, onItemPress, limit }: P
 
   const displayTransactions = limit ? transactions.slice(0, limit) : transactions;
 
+  const formatTransactionDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    
+    // Check if it's today
+    if (date.toDateString() === now.toDateString()) {
+      return 'Today';
+    }
+    
+    // Check if it's yesterday
+    if (date.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday';
+    }
+    
+    // If it's within this year, don't show the year
+    if (date.getFullYear() === now.getFullYear()) {
+      return date.toLocaleDateString('en-US', { 
+        month: 'short',
+        day: 'numeric'
+      });
+    }
+    
+    // Show full date for older transactions
+    return date.toLocaleDateString('en-US', { 
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
   const renderAmount = (transaction: Transaction) => {
     const isOriginalDifferent = transaction.originalCurrency?.code !== currency.code;
     const mainAmount = isOriginalDifferent 
@@ -95,7 +127,9 @@ export default function TransactionsList({ transactions, onItemPress, limit }: P
               </View>
               <View style={styles.transactionDetails}>
                 <Text style={styles.category}>{transaction.category}</Text>
-                <Text style={styles.date}>{transaction.date}</Text>
+                <Text style={styles.date}>
+                  {formatTransactionDate(transaction.date)}
+                </Text>
               </View>
             </View>
           </TouchableOpacity>

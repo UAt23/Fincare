@@ -1,9 +1,10 @@
 import { Transaction, CreateTransactionDTO } from '../../types/transaction';
 import { CURRENCIES } from '../../types/common';
+import { generateId } from '../../utils/id';
 
 const DEFAULT_CURRENCY = CURRENCIES[0]; // USD
 
-// Mock data
+// Mock data with ISO date strings
 const MOCK_TRANSACTIONS: Transaction[] = [
   {
     id: '1',
@@ -11,10 +12,10 @@ const MOCK_TRANSACTIONS: Transaction[] = [
     store: 'Nike Store',
     amount: 274.00,
     category: 'Shopping',
-    date: '09 April',
-    icon: '👕',
+    date: new Date('2024-01-09').toISOString(),
     originalAmount: 274.00,
     originalCurrency: DEFAULT_CURRENCY,
+    currency: DEFAULT_CURRENCY,
   },
   {
     id: '2',
@@ -22,7 +23,7 @@ const MOCK_TRANSACTIONS: Transaction[] = [
     store: 'Apple Store',
     amount: 92.00,
     category: 'Electronics',
-    date: '08 April',
+    date: new Date('2024-01-08').toISOString(),
     icon: '📱',
     originalAmount: 92.00,
     originalCurrency: DEFAULT_CURRENCY,
@@ -33,7 +34,7 @@ const MOCK_TRANSACTIONS: Transaction[] = [
     store: 'Uber',
     amount: 34.00,
     category: 'Transport',
-    date: '07 April',
+    date: new Date('2024-01-07').toISOString(),
     icon: '🚗',
     originalAmount: 34.00,
     originalCurrency: DEFAULT_CURRENCY,
@@ -44,7 +45,7 @@ const MOCK_TRANSACTIONS: Transaction[] = [
     store: 'Salary',
     amount: 5000.00,
     category: 'Income',
-    date: '05 April',
+    date: new Date('2024-01-05').toISOString(),
     icon: '💰',
     originalAmount: 5000.00,
     originalCurrency: DEFAULT_CURRENCY,
@@ -55,7 +56,7 @@ const MOCK_TRANSACTIONS: Transaction[] = [
     store: 'Grocery Store',
     amount: 156.50,
     category: 'Food',
-    date: '05 April',
+    date: new Date('2024-01-05').toISOString(),
     icon: '🛒',
     originalAmount: 156.50,
     originalCurrency: DEFAULT_CURRENCY,
@@ -82,23 +83,25 @@ class TransactionService {
   }
 
   async createTransaction(data: CreateTransactionDTO & { 
-    originalAmount: number;
-    originalCurrency: typeof CURRENCIES[number];
+    currency: Currency,
+    originalAmount: number,
+    originalCurrency: Currency 
   }): Promise<Transaction> {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const newTransaction: Transaction = {
-      id: Date.now().toString(),
-      date: new Date().toLocaleDateString('en-US', { 
-        day: '2-digit',
-        month: 'long'
-      }),
+    const transaction: Transaction = {
+      id: generateId(),
       ...data,
+      date: new Date().toISOString(),
     };
 
-    this.transactions.unshift(newTransaction);
-    return newTransaction;
+    // Add to local storage
+    this.transactions.unshift(transaction);
+
+    // Simulate API call
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(transaction);
+      }, 500);
+    });
   }
 }
 
