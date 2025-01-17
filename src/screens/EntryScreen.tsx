@@ -1,88 +1,358 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useState, useRef } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Modal,
+  Animated,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { colors } from '../theme/colors';
+import { useAppDispatch, useAppSelector } from '../hooks/useAppStore';
+import { addTransaction } from '../store/transactionsSlice';
+import { addCategory, addStore, setCurrency } from '../store/settingsSlice';
+import Dropdown from '../components/Dropdown';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { CURRENCIES } from '../types/common';
 
 type RootStackParamList = {
   Entry: undefined;
   MainTabs: undefined;
 };
 
-type EntryScreenNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'Entry'
->;
-
 type Props = {
-  navigation: EntryScreenNavigationProp;
+  navigation: NativeStackNavigationProp<RootStackParamList, 'Entry'>;
 };
 
 export default function EntryScreen({ navigation }: Props) {
-  const handleClose = () => {
-    // If we can go back, do that instead of replacing
-    if (navigation.canGoBack()) {
+  const dispatch = useAppDispatch();
+  const { categories, stores, currency } = useAppSelector(state => state.settings);
+  
+  const [formData, setFormData] = useState({
+    type: 'expense',
+    amount: '',
+    category: '',
+    store: '',
+    note: '',
+  });
+  const [error, setError] = useState<string | null>(null);
+  const [selectedCurrency, setSelectedCurrency] = useState(currency);
+
+  const handleSubmit = async () => {
+    try {
+      setError(null);
+      
+      const amount = parseFloat(formData.amount);
+      if (!amount || amount <= 0) {
+        setError('Please enter a valid amount');
+        return;
+      }
+      
+      if (!formData.store) {
+        setError('Please select a store/source');
+        return;
+      }
+      
+      if (!formData.category) {
+        setError('Please select a category');
+        return;
+      }
+
+      await dispatch(addTransaction({
+        type: formData.type as 'income' | 'expense',
+        amount,
+        category: formData.category,
+        store: formData.store,
+        note: formData.note.trim(),
+        originalAmount: amount,
+        originalCurrency: selectedCurrency,
+        currency: currency,
+      })).unwrap();
+      
       navigation.goBack();
-    } else {
-      navigation.replace('MainTabs');
+    } catch (err) {
+      setError('Failed to create transaction. Please try again.');
     }
   };
 
+  // Convert currencies to options format
+  const currencyOptions = CURRENCIES.map(curr => ({
+    label: `${curr.code} ${curr.name}`,
+    value: curr.code,
+    extraData: curr,
+  }));
+
   return (
-    <View style={styles.container}>
-      <TouchableOpacity 
-        style={styles.closeButton}
-        onPress={handleClose}
-      >
-        <Ionicons name="close" size={24} color="#333" />
-      </TouchableOpacity>
-      
-      <View style={styles.content}>
-        <Text style={styles.title}>Add New Transaction</Text>
-        {/* We'll add the form components here later */}
-        <Text style={styles.placeholder}>Entry form will go here</Text>
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.closeButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="close" size={28} color={colors.textPrimary} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>New Transaction</Text>
       </View>
-      
+
+      <ScrollView style={styles.content}>
+        {error && (
+          <Text style={styles.errorText}>{error}</Text>
+        )}
+        
+        <View style={styles.typeSelector}>
+          <TouchableOpacity 
+            style={[
+              styles.typeButton, 
+              formData.type === 'expense' && styles.typeButtonActive
+            ]}
+            onPress={() => setFormData(prev => ({ ...prev, type: 'expense' }))}
+          >
+            <Text style={[
+              styles.typeButtonText,
+              formData.type === 'expense' && styles.typeButtonTextActive
+            ]}>Expense</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[
+              styles.typeButton, 
+              formData.type === 'income' && styles.typeButtonActive
+            ]}
+            onPress={() => setFormData(prev => ({ ...prev, type: 'income' }))}
+          >
+            <Text style={[
+              styles.typeButtonText,
+              formData.type === 'income' && styles.typeButtonTextActive
+            ]}>Income</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Amount</Text>
+          <View style={styles.amountInput}>
+            <Dropdown
+              label="Currency"
+              value={selectedCurrency.code}
+              options={currencyOptions}
+              onChange={(code) => {
+                const newCurrency = CURRENCIES.find(c => c.code === code);
+                if (newCurrency) {
+                  setSelectedCurrency(newCurrency);
+                }
+              }}
+              compact
+              renderOption={(option) => (
+                <View style={styles.currencyOption}>
+                  <Text style={styles.currencyCode}>
+                    {option.extraData.symbol} {option.value}
+                  </Text>
+                  <Text style={styles.currencyName}>
+                    {option.extraData.name}
+                  </Text>
+                </View>
+              )}
+              placeholder={selectedCurrency.symbol}
+            />
+            <TextInput
+              style={[styles.input, styles.amountInputField]}
+              keyboardType="decimal-pad"
+              placeholder="0.00"
+              placeholderTextColor={colors.textTertiary}
+              value={formData.amount}
+              onChangeText={(amount) => setFormData(prev => ({ ...prev, amount }))}
+            />
+          </View>
+        </View>
+
+        <Dropdown
+          label="Store/Source"
+          value={formData.store}
+          options={stores}
+          onChange={(store) => setFormData(prev => ({ ...prev, store }))}
+          placeholder="Select store or income source"
+          canAdd
+          onAddNew={(newStore) => dispatch(addStore(newStore))}
+        />
+
+        <Dropdown
+          label="Category"
+          value={formData.category}
+          options={categories}
+          onChange={(category) => setFormData(prev => ({ ...prev, category }))}
+          placeholder="Select category"
+          canAdd
+          onAddNew={(newCategory) => dispatch(addCategory(newCategory))}
+        />
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Note (Optional)</Text>
+          <TextInput
+            style={[styles.input, styles.noteInput]}
+            placeholder="Add note"
+            placeholderTextColor={colors.textTertiary}
+            multiline
+            value={formData.note}
+            onChangeText={(note) => setFormData(prev => ({ ...prev, note }))}
+          />
+        </View>
+      </ScrollView>
+
       <TouchableOpacity 
-        style={styles.skipText}
-        onPress={handleClose}
+        style={[styles.submitButton, !formData.amount && styles.submitButtonDisabled]}
+        onPress={handleSubmit}
+        disabled={!formData.amount}
       >
-        <Text style={styles.skipTextContent}>Skip for now</Text>
+        <Text style={styles.submitButtonText}>Add Transaction</Text>
       </TouchableOpacity>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
+  },
+  header: {
+    height: 60,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 0.5,
+    borderBottomColor: colors.border,
+    marginTop: 44, // for status bar
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: colors.textPrimary,
   },
   closeButton: {
     position: 'absolute',
-    top: 40,
-    right: 20,
-    zIndex: 1,
-    padding: 10,
+    left: 8,
+    padding: 12,
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    marginBottom: 20,
-  },
-  placeholder: {
-    color: '#666',
-  },
-  skipText: {
     padding: 20,
+    backgroundColor: colors.background,
+  },
+  skipButton: {
+    padding: 16,
+    alignItems: 'center',
+    borderTopWidth: 0.5,
+    borderTopColor: colors.border,
+  },
+  skipButtonText: {
+    fontSize: 17,
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  typeSelector: {
+    flexDirection: 'row',
+    marginBottom: 24,
+    backgroundColor: colors.cardLight,
+    borderRadius: 12,
+    padding: 4,
+  },
+  typeButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  typeButtonActive: {
+    backgroundColor: colors.background,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  typeButtonText: {
+    fontSize: 16,
+    color: colors.textTertiary,
+  },
+  typeButtonTextActive: {
+    color: colors.textPrimary,
+    fontWeight: '600',
+  },
+  inputGroup: {
+    marginBottom: 24,
+  },
+  label: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: colors.input,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: colors.textPrimary,
+  },
+  noteInput: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  submitButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 16,
+    padding: 16,
+    margin: 20,
     alignItems: 'center',
   },
-  skipTextContent: {
-    color: '#666',
+  submitButtonText: {
+    color: colors.background,
     fontSize: 16,
+    fontWeight: '600',
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: 14,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
+  },
+  amountInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.input,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+  },
+  currencySymbol: {
+    fontSize: 16,
+    color: colors.textPrimary,
+    marginRight: 8,
+  },
+  amountInputField: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    padding: 16,
+  },
+  currencyOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  currencyCode: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginRight: 8,
+  },
+  currencyName: {
+    fontSize: 16,
+    color: colors.textTertiary,
   },
 }); 
