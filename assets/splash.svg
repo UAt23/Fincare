@@ -1,0 +1,19 @@
+<svg width="1242" height="2436" viewBox="0 0 1242 2436" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1242" height="2436" fill="#000000"/>
+  
+  <!-- Logo Container -->
+  <g transform="translate(371, 1068)">
+    <!-- F Letter -->
+    <path d="M150 0H350V80H230V160H330V240H230V400H150V0Z" fill="white"/>
+    
+    <!-- Coin Circle -->
+    <circle cx="350" cy="320" r="100" fill="#F2F2F7"/>
+    <path d="M350 240C350 240 325 265 325 320C325 375 350 400 350 400" stroke="#1C1C1E" stroke-width="25" stroke-linecap="round"/>
+  </g>
+  
+  <!-- App Name -->
+  <text x="621" y="1568" text-anchor="middle" font-family="Arial" font-size="80" font-weight="bold" fill="white">
+    Fincare
+  </text>
+</svg> 

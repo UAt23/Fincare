@@ -5,7 +5,7 @@ import { colors } from '../theme/colors';
 import HomeScreen from '../screens/HomeScreen';
 import TransactionsScreen from '../screens/TransactionsScreen';
 import StatisticsScreen from '../screens/StatisticsScreen';
-import ProfileScreen from '../screens/ProfileScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from './RootNavigator';
@@ -26,10 +26,9 @@ export default function MainTabNavigator() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textTertiary,
         tabBarStyle: {
-          height: 64,
           backgroundColor: colors.background,
-          borderTopWidth: 1,
           borderTopColor: colors.border,
+          height: 64,
           paddingBottom: 8,
           paddingTop: 8,
         },
@@ -39,8 +38,8 @@ export default function MainTabNavigator() {
         name="Home"
         component={HomeScreen}
         options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="home-outline" size={24} color={color} />
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home-outline" size={size} color={color} />
           ),
         }}
       />
@@ -48,8 +47,8 @@ export default function MainTabNavigator() {
         name="Transactions"
         component={TransactionsScreen}
         options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="list-outline" size={24} color={color} />
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="list-outline" size={size} color={color} />
           ),
         }}
       />
@@ -63,7 +62,7 @@ export default function MainTabNavigator() {
               onPress={() => navigation.navigate('Entry')}
             >
               <View style={styles.addButtonInner}>
-                <Ionicons name="add" size={32} color="#FFF" />
+                <Ionicons name="add" size={32} color={colors.textLight} />
               </View>
             </TouchableOpacity>
           ),
@@ -73,17 +72,17 @@ export default function MainTabNavigator() {
         name="Statistics"
         component={StatisticsScreen}
         options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="bar-chart-outline" size={24} color={color} />
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="stats-chart-outline" size={size} color={color} />
           ),
         }}
       />
       <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
+        name="Settings"
+        component={SettingsScreen}
         options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="person-outline" size={24} color={color} />
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings-outline" size={size} color={color} />
           ),
         }}
       />
@@ -94,7 +93,7 @@ export default function MainTabNavigator() {
 const styles = StyleSheet.create({
   addButton: {
     position: 'absolute',
-    bottom: 12,
+    bottom: 0,
     left: '50%',
     marginLeft: -28,
     width: 56,

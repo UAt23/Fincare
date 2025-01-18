@@ -70,7 +70,11 @@ export const convertTransactionAmounts = createAsyncThunk(
 const transactionsSlice = createSlice({
   name: 'transactions',
   initialState,
-  reducers: {},
+  reducers: {
+    setState: (state, action: PayloadAction<TransactionsState>) => {
+      return action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchTransactions.pending, (state) => {

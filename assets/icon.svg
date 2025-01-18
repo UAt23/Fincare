@@ -1,0 +1,11 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="512" cy="512" r="512" fill="#000000"/>
+  
+  <!-- F Letter -->
+  <path d="M384 256H640V352H480V448H608V544H480V768H384V256Z" fill="white"/>
+  
+  <!-- Coin Circle -->
+  <circle cx="640" cy="640" r="128" fill="#F2F2F7"/>
+  <path d="M640 544C640 544 608 576 608 640C608 704 640 736 640 736" stroke="#1C1C1E" stroke-width="32" stroke-linecap="round"/>
+</svg> 

@@ -1,94 +1,99 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { colors } from '../theme/colors';
-import { useAppSelector, useAppDispatch } from '../hooks/useAppStore';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/RootNavigator';
-import { setCurrency } from '../store/settingsSlice';
-import { convertTransactionAmounts } from '../store/transactionsSlice';
-import Dropdown from '../components/Dropdown';
-import { CURRENCIES } from '../types/common';
 
-type Props = {
-  navigation: NativeStackNavigationProp<RootStackParamList>;
+type SettingItem = {
+  icon: string;
+  label: string;
+  onPress: () => void;
+  showArrow?: boolean;
 };
 
-export default function SettingsScreen({ navigation }: Props) {
-  const dispatch = useAppDispatch();
-  const { categories, stores, currency } = useAppSelector(state => state.settings);
+export default function SettingsScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const handleCurrencyChange = (code: string) => {
-    const newCurrency = CURRENCIES.find(c => c.code === code);
-    if (newCurrency) {
-      dispatch(setCurrency(newCurrency));
-      dispatch(convertTransactionAmounts(newCurrency));
-    }
-  };
+  const settingItems: SettingItem[] = [
+    {
+      icon: 'person-outline',
+      label: 'Profile',
+      onPress: () => navigation.navigate('Profile'),
+      showArrow: true,
+    },
+    {
+      icon: 'wallet-outline',
+      label: 'Category Budgets',
+      onPress: () => navigation.navigate('CategoryBudgets'),
+      showArrow: true,
+    },
+    {
+      icon: 'card-outline',
+      label: 'Currency',
+      onPress: () => navigation.navigate('Currency'),
+      showArrow: true,
+    },
+    {
+      icon: 'notifications-outline',
+      label: 'Notifications',
+      onPress: () => {},
+      showArrow: true,
+    },
+    {
+      icon: 'moon-outline',
+      label: 'Dark Mode',
+      onPress: () => {},
+    },
+    {
+      icon: 'help-circle-outline',
+      label: 'Help & Support',
+      onPress: () => {},
+      showArrow: true,
+    },
+    {
+      icon: 'information-circle-outline',
+      label: 'About',
+      onPress: () => {},
+      showArrow: true,
+    },
+  ];
 
-  const currencyOptions = CURRENCIES.map(curr => ({
-    label: `${curr.code} ${curr.name}`,
-    value: curr.code,
-    extraData: curr,
-  }));
+  const renderSettingItem = (item: SettingItem) => (
+    <TouchableOpacity
+      key={item.label}
+      style={styles.settingItem}
+      onPress={item.onPress}
+    >
+      <View style={styles.settingContent}>
+        <Ionicons name={item.icon as any} size={24} color={colors.textPrimary} />
+        <Text style={styles.settingLabel}>{item.label}</Text>
+      </View>
+      {item.showArrow && (
+        <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />
+      )}
+    </TouchableOpacity>
+  );
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="chevron-back" size={28} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Settings</Text>
+        <View style={styles.logoContainer}>
+          <View style={styles.logo}>
+            <Text style={styles.logoLetter}>F</Text>
+            <View style={styles.logoCoin}>
+              <View style={styles.logoCoinCurve} />
+            </View>
+          </View>
+          <Text style={styles.title}>Fincare</Text>
+          <Text style={styles.version}>Version 1.0.0</Text>
+        </View>
       </View>
 
-      <ScrollView style={styles.content}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>General</Text>
-          <View style={styles.settingItem}>
-            <Dropdown
-              label="Default Currency"
-              value={currency.code}
-              options={currencyOptions}
-              onChange={handleCurrencyChange}
-              renderOption={(option) => (
-                <View style={styles.currencyOption}>
-                  <Text style={styles.currencyCode}>
-                    {option.extraData.symbol} {option.value}
-                  </Text>
-                  <Text style={styles.currencyName}>
-                    {option.extraData.name}
-                  </Text>
-                </View>
-              )}
-            />
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Categories</Text>
-          <TouchableOpacity style={styles.settingItem}>
-            <View style={styles.settingInfo}>
-              <Text style={styles.settingLabel}>Manage Categories</Text>
-              <Text style={styles.settingValue}>{categories.length} categories</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Stores</Text>
-          <TouchableOpacity style={styles.settingItem}>
-            <View style={styles.settingInfo}>
-              <Text style={styles.settingLabel}>Manage Stores</Text>
-              <Text style={styles.settingValue}>{stores.length} stores</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </View>
+      <View style={styles.settingsList}>
+        {settingItems.map(renderSettingItem)}
+      </View>
+    </ScrollView>
   );
 }
 
@@ -98,72 +103,84 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    height: 60,
+    padding: 20,
+    paddingTop: 40,
+    alignItems: 'center',
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    marginTop: 44,
+    marginBottom: 16,
+    position: 'relative',
+    overflow: 'visible',
   },
-  headerTitle: {
-    fontSize: 17,
+  logoLetter: {
+    fontSize: 28,
     fontWeight: '600',
+    color: colors.textLight,
+    marginLeft: -4,
+  },
+  logoCoin: {
+    position: 'absolute',
+    bottom: -8,
+    right: -20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.cardLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoCoinCurve: {
+    width: 20,
+    height: 20,
+    borderWidth: 3,
+    borderColor: colors.card,
+    borderRadius: 20,
+    borderRightWidth: 0,
+    borderBottomWidth: 0,
+    transform: [
+      { rotate: '45deg' },
+      { translateX: -2 },
+      { translateY: 2 },
+    ],
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
     color: colors.textPrimary,
+    marginBottom: 4,
   },
-  content: {
-    flex: 1,
-  },
-  section: {
-    marginTop: 24,
-  },
-  sectionTitle: {
+  version: {
     fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 8,
-    marginLeft: 16,
+    color: colors.textTertiary,
+  },
+  settingsList: {
+    padding: 20,
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: colors.cardLight,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  settingInfo: {
-    flex: 1,
+  settingContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
   },
   settingLabel: {
     fontSize: 16,
     color: colors.textPrimary,
-  },
-  settingValue: {
-    fontSize: 14,
-    color: colors.textTertiary,
-    marginTop: 2,
-  },
-  backButton: {
-    position: 'absolute',
-    left: 8,
-    padding: 12,
-  },
-  currencyOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: colors.cardLight,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  currencyCode: {
-    fontSize: 16,
-    color: colors.textPrimary,
-  },
-  currencyName: {
-    fontSize: 14,
-    color: colors.textTertiary,
-    marginTop: 2,
   },
 }); 

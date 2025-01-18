@@ -33,3 +33,11 @@ export const colors = {
   tabBarBackground: '#FFFFFF',
   tabBarBorder: 'rgba(0, 0, 0, 0.05)',
 }; 
+
+// Using our existing theme colors for the icon
+export const brandColors = {
+  primary: '#7F3DFF',
+  background: '#FFFFFF',
+  accent: '#EEE5FF',
+  text: '#212325',
+}; 

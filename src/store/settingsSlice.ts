@@ -60,8 +60,11 @@ const settingsSlice = createSlice({
     deleteStore: (state, action: PayloadAction<string>) => {
       state.stores = state.stores.filter(store => store.value !== action.payload);
     },
+    setState: (state, action: PayloadAction<Settings>) => {
+      return action.payload;
+    },
   },
 });
 
-export const { addCategory, addStore, setCurrency, deleteCategory, deleteStore } = settingsSlice.actions;
+export const { addCategory, addStore, setCurrency, deleteCategory, deleteStore, setState } = settingsSlice.actions;
 export default settingsSlice.reducer; 

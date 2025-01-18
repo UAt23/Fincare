@@ -10,15 +10,11 @@ export interface CreateTransactionDTO {
   note?: string;
 }
 
-export interface Transaction extends {
+export interface Transaction {
   id: string;
-  type: 'income' | 'expense';
   amount: number;
-  originalAmount: number;
-  currency: Currency;
-  originalCurrency: Currency;
+  type: 'income' | 'expense';
   category: string;
-  store: string;
-  note?: string;
   date: string;
+  note?: string;
 } 
