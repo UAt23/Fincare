@@ -1,21 +1,54 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { colors } from '../theme/colors';
-import { useAppSelector } from '../hooks/useAppStore';
+import { useAppSelector, useAppDispatch } from '../hooks/useAppStore';
 import { Ionicons } from '@expo/vector-icons';
 import TransactionsList from '../components/TransactionsList';
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import MonthPicker from '../components/MonthPicker';
 import { categoryIcons } from '../utils/categories';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/RootNavigator';
+import { fetchTransactions } from '../store/transactionsSlice';
 
 export default function TransactionsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { items: transactions } = useAppSelector(state => state.transactions);
+  const dispatch = useAppDispatch();
+  const { items: transactions = [], loading } = useAppSelector((state) => state.transactions);
   const { currency } = useAppSelector(state => state.settings);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const allBudgets = useAppSelector(state => state.categoryBudgets.budgets);
+
+  useEffect(() => {
+    dispatch(fetchTransactions());
+  }, [dispatch]);
+
+  const onRefresh = () => {
+    dispatch(fetchTransactions());
+  };
+
+  const groupedTransactions = useMemo(() => {
+    const groups: { [key: string]: typeof transactions } = {};
+    
+    (transactions || []).forEach(transaction => {
+      const date = new Date(transaction.date);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      if (!groups[monthKey]) {
+        groups[monthKey] = [];
+      }
+      groups[monthKey].push(transaction);
+    });
+
+    return Object.entries(groups)
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([month, transactions]) => ({
+        month,
+        transactions: transactions.sort((a, b) => 
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+        ),
+      }));
+  }, [transactions]);
 
   const monthKey = `${selectedMonth.getFullYear()}-${String(selectedMonth.getMonth() + 1).padStart(2, '0')}`;
 
@@ -179,7 +212,12 @@ export default function TransactionsScreen() {
                 <Text style={styles.viewAll}>View All</Text>
               </TouchableOpacity>
             </View>
-            <TransactionsList transactions={monthTransactions.slice(0, 5)} />
+            <TransactionsList 
+              transactions={transactions || []}
+              onItemPress={(transaction) => {
+                // Handle transaction press
+              }}
+            />
           </View>
         </>
       )}

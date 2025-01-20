@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import HomeScreen from '../screens/HomeScreen';
 import TransactionsScreen from '../screens/TransactionsScreen';
-import StatisticsScreen from '../screens/StatisticsScreen';
+import AnalyticsScreen from '../screens/AnalyticsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -69,8 +69,8 @@ export default function MainTabNavigator() {
         }}
       />
       <Tab.Screen
-        name="Statistics"
-        component={StatisticsScreen}
+        name="Analytics"
+        component={AnalyticsScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="stats-chart-outline" size={size} color={color} />

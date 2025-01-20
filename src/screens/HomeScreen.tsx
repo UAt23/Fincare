@@ -13,7 +13,7 @@ type Period = 'week' | 'month';
 
 export default function HomeScreen() {
   const dispatch = useAppDispatch();
-  const { items: transactions, loading } = useAppSelector((state) => state.transactions);
+  const { items: transactions = [], loading } = useAppSelector((state) => state.transactions);
   const navigation = useNavigation();
   const { currency } = useAppSelector(state => state.settings);
   const [selectedPeriod, setSelectedPeriod] = useState<Period>('month');
@@ -26,7 +26,7 @@ export default function HomeScreen() {
     dispatch(fetchTransactions(10));
   };
 
-  const totalExpenses = transactions
+  const totalExpenses = (transactions || [])
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
 
@@ -40,7 +40,7 @@ export default function HomeScreen() {
   const groupedTransactions = useMemo(() => {
     const groups: { [key: string]: typeof transactions } = {};
     
-    transactions.forEach(transaction => {
+    (transactions || []).forEach(transaction => {
       if (!groups[transaction.date]) {
         groups[transaction.date] = [];
       }
@@ -77,7 +77,7 @@ export default function HomeScreen() {
     const { startDate, endDate } = getDateRange();
 
     // Filter transactions for the selected period
-    const filteredTransactions = transactions.filter(t => {
+    const filteredTransactions = (transactions || []).filter(t => {
       const txDate = new Date(t.date);
       return (
         t.type === 'expense' &&

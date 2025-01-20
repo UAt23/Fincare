@@ -63,46 +63,31 @@ const MOCK_TRANSACTIONS: Transaction[] = [
   }
 ];
 
-class TransactionService {
-  private static instance: TransactionService;
-  private transactions: Transaction[] = MOCK_TRANSACTIONS;
-
-  private constructor() {}
-
-  public static getInstance(): TransactionService {
-    if (!TransactionService.instance) {
-      TransactionService.instance = new TransactionService();
-    }
-    return TransactionService.instance;
-  }
-
-  async getRecentTransactions(limit: number = 5): Promise<Transaction[]> {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return this.transactions.slice(0, limit);
-  }
-
-  async createTransaction(data: CreateTransactionDTO & { 
+export const transactionService = {
+  async createTransaction(data: CreateTransactionDTO & {
     currency: Currency,
     originalAmount: number,
-    originalCurrency: Currency 
+    originalCurrency: Currency,
+    date: string
   }): Promise<Transaction> {
-    const transaction: Transaction = {
+    const transactionDate = new Date(data.date);
+    
+    return {
       id: generateId(),
-      ...data,
-      date: new Date().toISOString(),
+      type: data.type,
+      amount: data.amount,
+      category: data.category,
+      store: data.store,
+      note: data.note || '',
+      date: transactionDate.toISOString(),
+      currency: data.currency,
+      originalAmount: data.originalAmount,
+      originalCurrency: data.originalCurrency,
     };
+  },
 
-    // Add to local storage
-    this.transactions.unshift(transaction);
-
-    // Simulate API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(transaction);
-      }, 500);
-    });
-  }
-}
-
-export const transactionService = TransactionService.getInstance(); 
+  async getRecentTransactions(limit: number = 10): Promise<Transaction[]> {
+    // Return a slice of the mock transactions for demonstration
+    return MOCK_TRANSACTIONS.slice(0, limit);
+  },
+}; 

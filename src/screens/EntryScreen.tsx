@@ -19,6 +19,7 @@ import { addCategory, addStore, setCurrency } from '../store/settingsSlice';
 import Dropdown from '../components/Dropdown';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { CURRENCIES } from '../types/common';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 type RootStackParamList = {
   Entry: undefined;
@@ -42,6 +43,23 @@ export default function EntryScreen({ navigation }: Props) {
   });
   const [error, setError] = useState<string | null>(null);
   const [selectedCurrency, setSelectedCurrency] = useState(currency);
+  const [date, setDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setDate(selectedDate);
+    }
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
 
   const handleSubmit = async () => {
     try {
@@ -63,6 +81,9 @@ export default function EntryScreen({ navigation }: Props) {
         return;
       }
 
+      const selectedDate = new Date(date);
+      selectedDate.setHours(0, 0, 0, 0);
+
       await dispatch(addTransaction({
         type: formData.type as 'income' | 'expense',
         amount,
@@ -72,6 +93,7 @@ export default function EntryScreen({ navigation }: Props) {
         originalAmount: amount,
         originalCurrency: selectedCurrency,
         currency: currency,
+        date: selectedDate.toISOString(),
       })).unwrap();
       
       navigation.goBack();
@@ -170,6 +192,28 @@ export default function EntryScreen({ navigation }: Props) {
             />
           </View>
         </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Date</Text>
+          <TouchableOpacity
+            style={styles.dateButton}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Text style={styles.dateText}>{formatDate(date)}</Text>
+            <Ionicons name="calendar-outline" size={24} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Date Picker */}
+        {showDatePicker && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={onDateChange}
+            maximumDate={new Date()}
+          />
+        )}
 
         <Dropdown
           label="Store/Source"
@@ -354,5 +398,18 @@ const styles = StyleSheet.create({
   currencyName: {
     fontSize: 16,
     color: colors.textTertiary,
+  },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.input,
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 8,
+  },
+  dateText: {
+    fontSize: 16,
+    color: colors.textPrimary,
   },
 }); 

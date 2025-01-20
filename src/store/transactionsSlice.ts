@@ -4,6 +4,7 @@ import { transactionService } from '../services/api/transactions';
 import { Currency } from '../types/common';
 import { CurrencyService } from '../services/api/currency';
 import { RootState } from '../store';
+import { generateMockTransactions } from '../utils/mockData';
 
 interface TransactionsState {
   items: Transaction[];
@@ -30,9 +31,14 @@ export const addTransaction = createAsyncThunk(
   async (data: CreateTransactionDTO & { 
     currency: Currency,
     originalAmount: number,
-    originalCurrency: Currency 
+    originalCurrency: Currency,
+    date: string
   }) => {
-    const response = await transactionService.createTransaction(data);
+    const response = await transactionService.createTransaction({
+      ...data,
+      date: data.date,
+    });
+    
     return response;
   }
 );
@@ -74,6 +80,10 @@ const transactionsSlice = createSlice({
     setState: (state, action: PayloadAction<TransactionsState>) => {
       return action.payload;
     },
+    addMockData: (state, action: PayloadAction<Date>) => {
+      const mockTransactions = generateMockTransactions(action.payload);
+      state.items = [...mockTransactions, ...state.items];
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -91,6 +101,9 @@ const transactionsSlice = createSlice({
       })
       .addCase(addTransaction.fulfilled, (state, action) => {
         state.items.unshift(action.payload);
+        state.items.sort((a, b) => 
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
       })
       .addCase(convertTransactionAmounts.fulfilled, (state, action) => {
         state.items = action.payload;
@@ -98,4 +111,5 @@ const transactionsSlice = createSlice({
   },
 });
 
+export const { addMockData } = transactionsSlice.actions;
 export default transactionsSlice.reducer; 
