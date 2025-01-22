@@ -19,7 +19,7 @@ export default function HomeScreen() {
   const [selectedPeriod, setSelectedPeriod] = useState<Period>('month');
 
   useEffect(() => {
-    dispatch(fetchTransactions(10));
+    dispatch(fetchTransactions(20));
   }, [dispatch]);
 
   const onRefresh = () => {

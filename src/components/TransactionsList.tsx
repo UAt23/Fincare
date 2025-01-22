@@ -113,7 +113,7 @@ export default function TransactionsList({ transactions, onItemPress, limit }: P
         >
           <TouchableOpacity 
             style={styles.transactionItem}
-            onPress={() => onItemPress?.(transaction)}
+            onPress={() => onItemPress && onItemPress(transaction)}
             activeOpacity={0.7}
           >
             <TransactionIcon 

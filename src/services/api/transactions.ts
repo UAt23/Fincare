@@ -1,67 +1,10 @@
 import { Transaction, CreateTransactionDTO } from '../../types/transaction';
-import { CURRENCIES } from '../../types/common';
+import { Currency, DEFAULT_CURRENCY } from '../../types/common';
 import { generateId } from '../../utils/id';
+import { mockedMyTransactions } from '../../utils/mockedMy';
 
-const DEFAULT_CURRENCY = CURRENCIES[0]; // USD
-
-// Mock data with ISO date strings
-const MOCK_TRANSACTIONS: Transaction[] = [
-  {
-    id: '1',
-    type: 'expense',
-    store: 'Nike Store',
-    amount: 274.00,
-    category: 'Shopping',
-    date: new Date('2024-01-09').toISOString(),
-    originalAmount: 274.00,
-    originalCurrency: DEFAULT_CURRENCY,
-    currency: DEFAULT_CURRENCY,
-  },
-  {
-    id: '2',
-    type: 'expense',
-    store: 'Apple Store',
-    amount: 92.00,
-    category: 'Electronics',
-    date: new Date('2024-01-08').toISOString(),
-    icon: '📱',
-    originalAmount: 92.00,
-    originalCurrency: DEFAULT_CURRENCY,
-  },
-  {
-    id: '3',
-    type: 'expense',
-    store: 'Uber',
-    amount: 34.00,
-    category: 'Transport',
-    date: new Date('2024-01-07').toISOString(),
-    icon: '🚗',
-    originalAmount: 34.00,
-    originalCurrency: DEFAULT_CURRENCY,
-  },
-  {
-    id: '4',
-    type: 'income',
-    store: 'Salary',
-    amount: 5000.00,
-    category: 'Income',
-    date: new Date('2024-01-05').toISOString(),
-    icon: '💰',
-    originalAmount: 5000.00,
-    originalCurrency: DEFAULT_CURRENCY,
-  },
-  {
-    id: '5',
-    type: 'expense',
-    store: 'Grocery Store',
-    amount: 156.50,
-    category: 'Food',
-    date: new Date('2024-01-05').toISOString(),
-    icon: '🛒',
-    originalAmount: 156.50,
-    originalCurrency: DEFAULT_CURRENCY,
-  }
-];
+// Mock data with proper typing and structure
+const MOCK_TRANSACTIONS: Transaction[] = mockedMyTransactions;
 
 export const transactionService = {
   async createTransaction(data: CreateTransactionDTO & {

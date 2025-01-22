@@ -5,6 +5,7 @@ import { Currency } from '../types/common';
 import { CurrencyService } from '../services/api/currency';
 import { RootState } from '../store';
 import { generateMockTransactions } from '../utils/mockData';
+import { MOCK_TRANSACTIONS } from '../services/api/transactions';
 
 interface TransactionsState {
   items: Transaction[];
@@ -70,6 +71,14 @@ export const convertTransactionAmounts = createAsyncThunk(
         currency: newCurrency,
       };
     });
+  }
+);
+
+export const addMockTransactions = createAsyncThunk(
+  'transactions/addMockTransactions',
+  async (date: Date) => {
+    const mockTransactions = MOCK_TRANSACTIONS;
+    return mockTransactions;
   }
 );
 

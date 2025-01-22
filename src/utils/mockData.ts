@@ -20,6 +20,7 @@ const mockStores = [
   'Pharmacy',
   'Restaurant',
   'Cafe',
+  'Company Inc',
 ];
 
 export const generateMockTransactions = (month: Date): Transaction[] => {

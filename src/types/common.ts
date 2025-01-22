@@ -5,9 +5,9 @@ export type Currency = {
 };
 
 export const CURRENCIES: Currency[] = [
+  { code: 'TRY', symbol: '₺', name: 'Turkish Lira' },
   { code: 'USD', symbol: '$', name: 'US Dollar' },
   { code: 'EUR', symbol: '€', name: 'Euro' },
-  { code: 'TRY', symbol: '₺', name: 'Turkish Lira' },
   { code: 'GBP', symbol: '£', name: 'British Pound' },
   { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
 ];
