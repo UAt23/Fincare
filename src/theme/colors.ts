@@ -4,13 +4,15 @@ export const colors = {
   secondary: '#5856D6', // Keep purple as accent
   
   // Status Colors
-  success: '#34C759',
+  success: '#30e48c',
   warning: '#FF9500',
-  error: '#FF3B30',
+  error: '#fc5a5c',
   
   // Grayscale
   background: '#FFFFFF',
   card: '#1C1C1E', // Dark card background
+  cardMedium: '#D5D5EC',
+  cardMidLight: '#EAEAEB',
   cardLight: '#F2F2F7', // Light card background
   input: '#F9F9F9',
   border: '#E5E5EA',

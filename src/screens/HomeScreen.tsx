@@ -1,34 +1,26 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
-import { useMemo, useEffect, useState } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../hooks/useAppStore';
-import { fetchTransactions } from '../store/transactionsSlice';
+import { fetchTransactions, fetchAllTransactions } from '../store/transactionsSlice';
 import TransactionsList from '../components/TransactionsList';
 import { useNavigation } from '@react-navigation/native';
-import Dropdown from '../components/Dropdown';
-import ExpenseBarChart from '../components/ExpenseBarChart';
-
-type Period = 'week' | 'month';
 
 export default function HomeScreen() {
   const dispatch = useAppDispatch();
   const { items: transactions = [], loading } = useAppSelector((state) => state.transactions);
   const navigation = useNavigation();
   const { currency } = useAppSelector(state => state.settings);
-  const [selectedPeriod, setSelectedPeriod] = useState<Period>('month');
 
   useEffect(() => {
-    dispatch(fetchTransactions(20));
+    // Fetch all transactions for accurate statistics
+    dispatch(fetchAllTransactions());
   }, [dispatch]);
 
   const onRefresh = () => {
-    dispatch(fetchTransactions(10));
+    dispatch(fetchAllTransactions());
   };
-
-  const totalExpenses = (transactions || [])
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -37,111 +29,57 @@ export default function HomeScreen() {
     return 'Good evening';
   }, []);
 
-  const groupedTransactions = useMemo(() => {
-    const groups: { [key: string]: typeof transactions } = {};
-    
-    (transactions || []).forEach(transaction => {
-      if (!groups[transaction.date]) {
-        groups[transaction.date] = [];
-      }
-      groups[transaction.date].push(transaction);
-    });
+  const greetingMessage = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Let's start your day with your finances in check!";
+    if (hour < 18) return "Hope you're having a great day managing your expenses!";
+    return "Time to review your daily spending!";
+  }, []);
 
-    return Object.entries(groups);
+  // Calculate quick stats from all transactions
+  const stats = useMemo(() => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    const todayExpenses = transactions
+      .filter(t => {
+        const txDate = new Date(t.date);
+        return t.type === 'expense' && 
+          txDate.getDate() === today.getDate() &&
+          txDate.getMonth() === today.getMonth() &&
+          txDate.getFullYear() === today.getFullYear();
+      })
+      .reduce((sum, t) => sum + Number(t.amount), 0);
+
+    const yesterdayExpenses = transactions
+      .filter(t => {
+        const txDate = new Date(t.date);
+        return t.type === 'expense' && 
+          txDate.getDate() === yesterday.getDate() &&
+          txDate.getMonth() === yesterday.getMonth() &&
+          txDate.getFullYear() === yesterday.getFullYear();
+      })
+      .reduce((sum, t) => sum + Number(t.amount), 0);
+
+    const monthExpenses = transactions
+      .filter(t => {
+        const txDate = new Date(t.date);
+        return t.type === 'expense' && 
+          txDate.getMonth() === today.getMonth() &&
+          txDate.getFullYear() === today.getFullYear();
+      })
+      .reduce((sum, t) => sum + Number(t.amount), 0);
+
+    return { todayExpenses, yesterdayExpenses, monthExpenses };
   }, [transactions]);
 
-  const periodOptions = [
-    { label: 'This Week', value: 'week' },
-    { label: 'This Month', value: 'month' },
-  ];
-
-  const { totalExpenses: periodTotalExpenses, chartData } = useMemo(() => {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-    const currentDate = now.getDate();
-    const currentDay = now.getDay();
-
-    const getDateRange = () => {
-      if (selectedPeriod === 'week') {
-        const startDate = new Date(currentYear, currentMonth, currentDate - currentDay);
-        const endDate = new Date(currentYear, currentMonth, currentDate + (6 - currentDay));
-        return { startDate, endDate };
-      } else {
-        const startDate = new Date(currentYear, currentMonth, 1);
-        const endDate = new Date(currentYear, currentMonth + 1, 0);
-        return { startDate, endDate };
-      }
-    };
-
-    const { startDate, endDate } = getDateRange();
-
-    // Filter transactions for the selected period
-    const filteredTransactions = (transactions || []).filter(t => {
-      const txDate = new Date(t.date);
-      return (
-        t.type === 'expense' &&
-        txDate >= startDate &&
-        txDate <= endDate
-      );
-    });
-
-    const total = filteredTransactions.reduce((sum, t) => sum + t.amount, 0);
-
-    // Generate chart data
-    const generateChartData = () => {
-      if (selectedPeriod === 'week') {
-        return Array(7).fill(0).map((_, index) => {
-          const day = new Date(startDate);
-          day.setDate(startDate.getDate() + index);
-          
-          const dayExpenses = filteredTransactions
-            .filter(t => {
-              const txDate = new Date(t.date);
-              return (
-                txDate.getFullYear() === day.getFullYear() &&
-                txDate.getMonth() === day.getMonth() &&
-                txDate.getDate() === day.getDate()
-              );
-            })
-            .reduce((sum, t) => sum + t.amount, 0);
-
-          return {
-            value: dayExpenses,
-            label: day.toLocaleDateString('en-US', { weekday: 'short' }),
-            date: day,
-          };
-        });
-      } else {
-        const daysInMonth = endDate.getDate();
-        return Array(daysInMonth).fill(0).map((_, index) => {
-          const day = new Date(currentYear, currentMonth, index + 1);
-          
-          const dayExpenses = filteredTransactions
-            .filter(t => {
-              const txDate = new Date(t.date);
-              return (
-                txDate.getFullYear() === day.getFullYear() &&
-                txDate.getMonth() === day.getMonth() &&
-                txDate.getDate() === day.getDate()
-              );
-            })
-            .reduce((sum, t) => sum + t.amount, 0);
-
-          return {
-            value: dayExpenses,
-            label: String(index + 1),
-            date: day,
-          };
-        });
-      }
-    };
-
-    return {
-      totalExpenses: total,
-      chartData: generateChartData(),
-    };
-  }, [transactions, selectedPeriod]);
+  // Get only recent transactions for the list
+  const recentTransactions = useMemo(() => {
+    return [...transactions] // Create a new array before sorting
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 5);
+  }, [transactions]);
 
   return (
     <ScrollView 
@@ -151,54 +89,64 @@ export default function HomeScreen() {
       }
     >
       <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>{greeting},</Text>
-          <Text style={styles.name}>Priscilla</Text>
+        <View style={styles.greetingContainer}>
+          <View style={styles.profileContainer}>
+            <View style={styles.profileIcon}>
+              <Ionicons 
+                name="person" 
+                size={32} 
+                color={colors.textLight}
+              />
+            </View>
+            <View style={styles.profileStatus} />
+          </View>
+          <View style={styles.greetingText}>
+            <Text style={styles.greeting}>{greeting},</Text>
+            <Text style={styles.name}>Priscilla</Text>
+            <Text style={styles.message}>{greetingMessage}</Text>
+          </View>
         </View>
-        <TouchableOpacity style={styles.searchButton}>
-          <Ionicons name="search-outline" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
       </View>
 
-      <View style={styles.outcomeCard}>
-        <Text style={styles.outcomeLabel}>Total Expenses</Text>
-        <Text style={styles.outcomeAmount}>
-          {currency.symbol}{periodTotalExpenses.toFixed(2)}
-        </Text>
-        <View style={styles.chart}>
-          <ExpenseBarChart 
-            data={chartData}
-            maxValue={Math.max(...chartData.map(d => d.value), 1)}
-            height={120}
-            period={selectedPeriod}
-            currency={currency}
-          />
+      <View style={styles.quickStats}>
+        <View style={[styles.statCard, { backgroundColor: colors.card }]}>
+          <Text style={styles.statLabel}>Today's Expenses</Text>
+          <Text style={styles.statAmount}>
+            {currency.symbol}{stats.todayExpenses.toFixed(2)}
+          </Text>
+          <Text style={styles.statCompare}>
+            {Math.abs(stats.todayExpenses - stats.yesterdayExpenses)}
+          </Text>
+          <Text style={styles.statCompare}>
+            {stats.todayExpenses > stats.yesterdayExpenses ? 'higher' : 'lower'} than yesterday
+          </Text>
         </View>
-        <View style={styles.periodSelector}>
-          <Dropdown
-            value={selectedPeriod}
-            options={periodOptions}
-            onChange={(value) => setSelectedPeriod(value as Period)}
-            compact
-            isDark
-            placeholder="This Month"
-          />
+
+        <View style={[styles.statCard, { backgroundColor: colors.primary }]}>
+          <Text style={[styles.statLabel, { color: colors.textLight }]}>Month Total</Text>
+          <Text style={[styles.statAmount, { color: colors.textLight }]}>
+            {currency.symbol}{stats.monthExpenses.toFixed(2)}
+          </Text>
+          <TouchableOpacity 
+            style={styles.viewDetailsButton}
+            onPress={() => navigation.navigate('Analytics')}
+          >
+            <Text style={styles.viewDetailsText}>View Details</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.transactionsContainer}>
         <View style={styles.transactionsHeader}>
-          <Text style={styles.transactionsTitle}>Transactions</Text>
+          <Text style={styles.transactionsTitle}>Recent Transactions</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Transactions')}>
             <Text style={styles.viewAllButton}>View All</Text>
           </TouchableOpacity>
         </View>
 
         <TransactionsList 
-          transactions={transactions}
-          limit={5}
+          transactions={recentTransactions}
           onItemPress={(transaction) => {
-            // Handle transaction details view
             console.log('Transaction pressed:', transaction);
           }}
         />
@@ -213,55 +161,67 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
     padding: 20,
     paddingTop: 40,
+    backgroundColor: colors.cardMedium,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  greeting: {
-    fontSize: 16,
-    color: colors.textSecondary,
+  greetingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  name: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.textPrimary,
+  profileContainer: {
+    position: 'relative',
+    marginRight: 16,
   },
-  searchButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.cardLight,
+  profileIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  outcomeCard: {
-    margin: 20,
-    padding: 20,
-    borderRadius: 24,
-    backgroundColor: colors.card,
+  profileStatus: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: colors.success,
+    borderWidth: 2,
+    borderColor: colors.card,
   },
-  outcomeLabel: {
-    fontSize: 14,
-    color: colors.textLight,
-    opacity: 0.7,
+  greetingText: {
+    flex: 1,
   },
-  outcomeAmount: {
+  greeting: {
+    fontSize: 16,
+    color: colors.primary,
+    fontWeight: '500',
+  },
+  name: {
     fontSize: 24,
-    fontWeight: '600',
-    color: colors.textLight,
-    marginTop: 8,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginVertical: 4,
   },
-  chart: {
-    height: 120,
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  periodLabel: {
-    fontSize: 12,
-    color: colors.textLight,
-    opacity: 0.7,
+  message: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
   },
   transactionsContainer: {
     paddingHorizontal: 20,
@@ -344,7 +304,48 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textTertiary,
   },
-  periodSelector: {
-    marginTop: 16,
+  quickStats: {
+    flexDirection: 'row',
+    padding: 20,
+    gap: 16,
+  },
+  statCard: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  statLabel: {
+    fontSize: 14,
+    color: colors.textLight,
+    marginBottom: 8,
+  },
+  statAmount: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: colors.textLight,
+    marginBottom: 8,
+  },
+  statCompare: {
+    fontSize: 13,
+    color: colors.textLight,
+  },
+  viewDetailsButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  viewDetailsText: {
+    color: colors.textLight,
+    fontSize: 13,
+    fontWeight: '500',
   },
 }); 

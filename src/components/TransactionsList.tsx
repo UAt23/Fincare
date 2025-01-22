@@ -122,7 +122,7 @@ export default function TransactionsList({ transactions, onItemPress, limit }: P
             />
             <View style={styles.transactionInfo}>
               <View style={styles.transactionMain}>
-                <Text style={styles.storeName}>{transaction.store}</Text>
+                <Text style={[styles.storeName, { flex: 1, gap: 20}]} numberOfLines={1} ellipsizeMode="tail">{transaction.store}</Text>
                 {renderAmount(transaction)}
               </View>
               <View style={styles.transactionDetails}>

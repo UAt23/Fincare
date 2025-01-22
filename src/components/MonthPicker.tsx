@@ -86,7 +86,7 @@ export default function MonthPicker({ value, onChange }: Props) {
           style={styles.button}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.textLight} />
+          <Ionicons name="chevron-back" size={24} color={colors.textTertiary} />
         </TouchableOpacity>
 
         <View style={styles.dateContainer}>
@@ -98,7 +98,7 @@ export default function MonthPicker({ value, onChange }: Props) {
           style={styles.button}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="chevron-forward" size={24} color={colors.textLight} />
+          <Ionicons name="chevron-forward" size={24} color={colors.textTertiary} />
         </TouchableOpacity>
       </TouchableOpacity>
 
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.card,
+    backgroundColor: colors.cardMidLight,
     borderRadius: 12,
     padding: 8,
     borderWidth: 1,
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.textLight,
+    color: colors.textPrimary,
   },
   modalOverlay: {
     flex: 1,

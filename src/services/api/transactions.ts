@@ -30,7 +30,15 @@ export const transactionService = {
   },
 
   async getRecentTransactions(limit: number = 10): Promise<Transaction[]> {
-    // Return a slice of the mock transactions for demonstration
-    return MOCK_TRANSACTIONS.slice(0, limit);
+    // Create a new array before sorting
+    const sortedTransactions = [...MOCK_TRANSACTIONS]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return sortedTransactions.slice(0, limit);
+  },
+
+  async getAllTransactions(): Promise<Transaction[]> {
+    // Create a new array before sorting
+    return [...MOCK_TRANSACTIONS]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   },
 }; 

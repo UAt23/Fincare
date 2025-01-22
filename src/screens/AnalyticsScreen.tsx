@@ -181,7 +181,7 @@ export default function AnalyticsScreen() {
                 data: chartData.dataPoints.length > 0 ? chartData.dataPoints : [0]
               }]
             }}
-            width={Dimensions.get('window').width - 48}
+            width={Dimensions.get('window').width - 36}
             height={220}
             yAxisLabel={currency.symbol}
             chartConfig={{
@@ -189,7 +189,7 @@ export default function AnalyticsScreen() {
               backgroundGradientFrom: colors.background,
               backgroundGradientTo: colors.background,
               decimalPlaces: 0,
-              color: (opacity = 1) => colors.primary + opacity.toString(16).padStart(2, '0'),
+              color: () => colors.primary,
               labelColor: () => colors.textSecondary,
               propsForBackgroundLines: {
                 strokeDasharray: '6',
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 2,
   },
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   chart: {
-    marginRight: -32,
+    marginRight: 36,
     borderRadius: 16,
   },
   noDataContainer: {

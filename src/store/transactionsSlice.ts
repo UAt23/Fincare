@@ -27,6 +27,14 @@ export const fetchTransactions = createAsyncThunk(
   }
 );
 
+export const fetchAllTransactions = createAsyncThunk(
+  'transactions/fetchAllTransactions',
+  async () => {
+    const response = await transactionService.getAllTransactions();
+    return response;
+  }
+);
+
 export const addTransaction = createAsyncThunk(
   'transactions/addTransaction',
   async (data: CreateTransactionDTO & { 
@@ -105,6 +113,18 @@ const transactionsSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchTransactions.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch transactions';
+      })
+      .addCase(fetchAllTransactions.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchAllTransactions.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchAllTransactions.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch transactions';
       })
