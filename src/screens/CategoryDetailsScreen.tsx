@@ -22,19 +22,22 @@ export default function CategoryDetailsScreen({ route, navigation }: Props) {
   const { category, transactions } = route.params;
   const dispatch = useAppDispatch();
   const { currency } = useAppSelector(state => state.settings);
-  const currentBudget = useAppSelector(state => 
-    state.categoryBudgets.budgets[category] || route.params.budget
-  );
+  const categoryBudgets = useAppSelector(state => state.categoryBudgets.budgets[category] || []);
+  
+  // Assuming budgets are stored as an array of objects with a 'month' and 'amount' property
+  const currentMonth = new Date().toISOString().slice(0, 7); // 'YYYY-MM'
+  const currentBudget = categoryBudgets.find(b => b.month === currentMonth)?.amount || 0;
+  
   const icon = categoryIcons[category] || 'cart-outline';
 
   const totalSpent = transactions.reduce((sum, t) => sum + t.amount, 0);
-  const percentage = Math.min((totalSpent / currentBudget) * 100, 100);
+  const percentage = currentBudget > 0 ? Math.min((totalSpent / currentBudget) * 100, 100) : 0;
 
   const handleEditBudget = () => {
     navigation.navigate('CategoryBudget', { 
       category,
       onSave: (newBudget: number) => {
-        dispatch(updateCategoryBudget({ category, budget: newBudget }));
+        dispatch(updateCategoryBudget({ category, budget: newBudget, month: currentMonth }));
       }
     });
   };
@@ -73,26 +76,13 @@ export default function CategoryDetailsScreen({ route, navigation }: Props) {
 
       <View style={styles.progressSection}>
         <View style={styles.progressHeader}>
-          <Text style={styles.progressLabel}>Budget Usage</Text>
-          <Text 
-            style={[
-              styles.progressPercentage,
-              { color: percentage > 90 ? colors.error : colors.success }
-            ]}
-          >
+          <Text style={styles.progressLabel}>Progress</Text>
+          <Text style={styles.progressPercentage}>
             {percentage.toFixed(1)}%
           </Text>
         </View>
         <View style={styles.progressContainer}>
-          <View 
-            style={[
-              styles.progressBar,
-              { 
-                width: `${percentage}%`,
-                backgroundColor: percentage > 90 ? colors.error : colors.primary 
-              }
-            ]} 
-          />
+          <View style={[styles.progressBar, { width: `${percentage}%`, backgroundColor: percentage > 100 ? colors.error : colors.primary }]} />
         </View>
       </View>
 

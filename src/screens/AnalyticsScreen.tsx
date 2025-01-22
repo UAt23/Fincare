@@ -275,6 +275,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
+    paddingTop: 40,
   },
   overviewSection: {
     padding: 20,

@@ -194,7 +194,7 @@ export default function TransactionsScreen() {
         <>
           <View style={styles.expensesSection}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Expenses</Text>
+              <Text style={styles.sectionTitle}>Expenses by Category</Text>
               <TouchableOpacity onPress={handleViewAllExpenses}>
                 <Text style={styles.viewAll}>View All</Text>
               </TouchableOpacity>
@@ -207,13 +207,10 @@ export default function TransactionsScreen() {
 
           <View style={styles.transactionsSection}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Recent Transactions</Text>
-              <TouchableOpacity>
-                <Text style={styles.viewAll}>View All</Text>
-              </TouchableOpacity>
+              <Text style={styles.sectionTitle}>Transactions</Text>
             </View>
             <TransactionsList 
-              transactions={transactions || []}
+              transactions={monthTransactions || []}
               onItemPress={(transaction) => {
                 // Handle transaction press
               }}
