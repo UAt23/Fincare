@@ -217,24 +217,26 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   contentContainer: {
+    flexGrow: 1,
     padding: 20,
   },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'space-between',
+    paddingTop: 20,
+    paddingBottom: 20,
   },
   closeButton: {
     padding: 10,
   },
   headerTitle: {
-    flex: 1,
     fontSize: 18,
     fontWeight: 'bold',
     color: colors.textPrimary,
   },
   headerPlaceholder: {
-    flex: 1,
+    width: 24,
   },
   incomeSection: {
     marginBottom: 20,
