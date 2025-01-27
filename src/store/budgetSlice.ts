@@ -1,61 +1,108 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Budget, BudgetCategory } from '../types/budget';
-
-interface BudgetState {
-  activeBudget: Budget | null;
-  loading: boolean;
-  error: string | null;
-}
+import { 
+  BudgetState, 
+  IncomeAllocation, 
+  SavingsGoal, 
+  RecurringTransaction 
+} from '../types/budget';
+import { generateId } from '../utils/id';
 
 const initialState: BudgetState = {
-  activeBudget: null,
-  loading: false,
-  error: null,
+  incomeAllocations: [],
+  savingsGoals: [],
+  recurringTransactions: [],
+  categoryBudgets: {},
 };
 
 const budgetSlice = createSlice({
   name: 'budget',
   initialState,
   reducers: {
-    setBudget: (state, action: PayloadAction<Budget>) => {
-      state.activeBudget = action.payload;
+    // Income Allocation Actions
+    addIncomeAllocation: (state, action: PayloadAction<{ 
+      category: string; 
+      amount: number;
+      percentage: number;
+    }>) => {
+      const { category, amount, percentage } = action.payload;
+
+      // Update category budgets
+      if (!state.categoryBudgets[category]) {
+        state.categoryBudgets[category] = 0;
+      }
+      state.categoryBudgets[category] += amount;
+
+      // Add allocation
+      state.incomeAllocations.push({
+        id: generateId(),
+        category,
+        amount,
+        percentage
+      });
     },
-    updateBudgetCategory: (state, action: PayloadAction<BudgetCategory>) => {
-      if (state.activeBudget) {
-        const index = state.activeBudget.categories.findIndex(
-          cat => cat.id === action.payload.id
-        );
-        if (index !== -1) {
-          state.activeBudget.categories[index] = action.payload;
-        }
+    updateIncomeAllocation: (state, action: PayloadAction<IncomeAllocation>) => {
+      const index = state.incomeAllocations.findIndex(a => a.id === action.payload.id);
+      if (index !== -1) {
+        state.incomeAllocations[index] = action.payload;
       }
     },
-    addBudgetCategory: (state, action: PayloadAction<BudgetCategory>) => {
-      if (state.activeBudget) {
-        state.activeBudget.categories.push(action.payload);
+    removeIncomeAllocation: (state, action: PayloadAction<string>) => {
+      state.incomeAllocations = state.incomeAllocations.filter(a => a.id !== action.payload);
+    },
+
+    // Savings Goal Actions
+    addSavingsGoal: (state, action: PayloadAction<Omit<SavingsGoal, 'id'>>) => {
+      state.savingsGoals.push({
+        id: generateId(),
+        ...action.payload,
+      });
+    },
+    updateSavingsGoal: (state, action: PayloadAction<SavingsGoal>) => {
+      const index = state.savingsGoals.findIndex(g => g.id === action.payload.id);
+      if (index !== -1) {
+        state.savingsGoals[index] = action.payload;
       }
     },
-    removeBudgetCategory: (state, action: PayloadAction<string>) => {
-      if (state.activeBudget) {
-        state.activeBudget.categories = state.activeBudget.categories.filter(
-          cat => cat.id !== action.payload
-        );
+    removeSavingsGoal: (state, action: PayloadAction<string>) => {
+      state.savingsGoals = state.savingsGoals.filter(g => g.id !== action.payload);
+    },
+
+    // Recurring Transaction Actions
+    addRecurringTransaction: (state, action: PayloadAction<Omit<RecurringTransaction, 'id'>>) => {
+      const transaction = {
+        ...action.payload,
+        id: generateId(),
+        startDate: new Date(action.payload.startDate).toISOString(),
+        endDate: action.payload.endDate ? new Date(action.payload.endDate).toISOString() : undefined,
+      };
+      state.recurringTransactions.push(transaction);
+    },
+    updateRecurringTransaction: (state, action: PayloadAction<RecurringTransaction>) => {
+      const index = state.recurringTransactions.findIndex(t => t.id === action.payload.id);
+      if (index !== -1) {
+        state.recurringTransactions[index] = {
+          ...action.payload,
+          startDate: new Date(action.payload.startDate).toISOString(),
+          endDate: action.payload.endDate ? new Date(action.payload.endDate).toISOString() : undefined,
+        };
       }
     },
-    updateBudgetLimit: (state, action: PayloadAction<number>) => {
-      if (state.activeBudget) {
-        state.activeBudget.totalLimit = action.payload;
-      }
+    removeRecurringTransaction: (state, action: PayloadAction<string>) => {
+      state.recurringTransactions = state.recurringTransactions.filter(t => t.id !== action.payload);
     },
   },
 });
 
 export const {
-  setBudget,
-  updateBudgetCategory,
-  addBudgetCategory,
-  removeBudgetCategory,
-  updateBudgetLimit,
+  addIncomeAllocation,
+  updateIncomeAllocation,
+  removeIncomeAllocation,
+  addSavingsGoal,
+  updateSavingsGoal,
+  removeSavingsGoal,
+  addRecurringTransaction,
+  updateRecurringTransaction,
+  removeRecurringTransaction,
 } = budgetSlice.actions;
 
 export default budgetSlice.reducer; 

@@ -20,9 +20,9 @@ type Option = {
 
 type Props = {
   label: string;
-  value: string;
-  options: Option[];
-  onChange: (value: string) => void;
+  options: { label: string; value: string }[];
+  selectedValue?: string;
+  onValueChange: (value: string) => void;
   placeholder?: string;
   canAdd?: boolean;
   onAddNew?: (value: string) => void;
@@ -33,9 +33,9 @@ type Props = {
 
 export default function Dropdown({ 
   label, 
-  value, 
   options, 
-  onChange, 
+  selectedValue, 
+  onValueChange, 
   placeholder = 'Select an option',
   canAdd = false,
   onAddNew,
@@ -48,7 +48,7 @@ export default function Dropdown({
   const [searchQuery, setSearchQuery] = useState('');
   const slideAnim = useRef(new Animated.Value(0)).current;
   
-  const selectedOption = options.find(opt => opt.value === value);
+  const selectedOption = options.find(opt => opt.value === selectedValue);
 
   const showModal = () => {
     setIsOpen(true);
@@ -75,13 +75,14 @@ export default function Dropdown({
     if (newValue.trim() && onAddNew) {
       onAddNew(newValue.trim());
       setNewValue('');
-      hideModal();
+      // hideModal();
     }
   };
 
   const handleSelect = (optionValue: string) => {
-    onChange(optionValue);
-    hideModal();
+    onValueChange(optionValue);
+    // Don't close the dropdown after selection
+    // hideModal();
   };
 
   const filteredOptions = useMemo(() => {
@@ -142,14 +143,10 @@ export default function Dropdown({
               ]}
             >
               <View style={styles.modalHeader}>
-                <TouchableOpacity 
-                  onPress={hideModal}
-                  style={styles.closeButton}
-                >
-                  <Ionicons name="close" size={24} color={colors.textPrimary} />
-                </TouchableOpacity>
                 <Text style={styles.modalTitle}>{label}</Text>
-                <View style={styles.closeButton} />
+                <TouchableOpacity onPress={hideModal}>
+                  <Ionicons name="close" size={24} color={colors.textSecondary} />
+                </TouchableOpacity>
               </View>
 
               <View style={styles.modalBody}>
@@ -199,7 +196,7 @@ export default function Dropdown({
                     <TouchableOpacity
                       style={[
                         styles.option,
-                        item.value === value && styles.selectedOption
+                        item.value === selectedValue && styles.selectedOption
                       ]}
                       onPress={() => handleSelect(item.value)}
                     >
@@ -208,12 +205,12 @@ export default function Dropdown({
                       ) : (
                         <Text style={[
                           styles.optionText,
-                          item.value === value && styles.selectedOptionText
+                          item.value === selectedValue && styles.selectedOptionText
                         ]}>
                           {item.label}
                         </Text>
                       )}
-                      {item.value === value && (
+                      {item.value === selectedValue && (
                         <Ionicons name="checkmark" size={20} color={colors.primary} />
                       )}
                     </TouchableOpacity>
@@ -275,14 +272,10 @@ export default function Dropdown({
             ]}
           >
             <View style={styles.modalHeader}>
-              <TouchableOpacity 
-                onPress={hideModal}
-                style={styles.closeButton}
-              >
-                <Ionicons name="close" size={24} color={colors.textPrimary} />
-              </TouchableOpacity>
               <Text style={styles.modalTitle}>{label}</Text>
-              <View style={styles.closeButton} />
+              <TouchableOpacity onPress={hideModal}>
+                <Ionicons name="close" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
             </View>
 
             <View style={styles.modalBody}>
@@ -332,7 +325,7 @@ export default function Dropdown({
                   <TouchableOpacity
                     style={[
                       styles.option,
-                      item.value === value && styles.selectedOption
+                      item.value === selectedValue && styles.selectedOption
                     ]}
                     onPress={() => handleSelect(item.value)}
                   >
@@ -341,12 +334,12 @@ export default function Dropdown({
                     ) : (
                       <Text style={[
                         styles.optionText,
-                        item.value === value && styles.selectedOptionText
+                        item.value === selectedValue && styles.selectedOptionText
                       ]}>
                         {item.label}
                       </Text>
                     )}
-                    {item.value === value && (
+                    {item.value === selectedValue && (
                       <Ionicons name="checkmark" size={20} color={colors.primary} />
                     )}
                   </TouchableOpacity>
@@ -404,8 +397,8 @@ const styles = StyleSheet.create({
   },
   modalHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,

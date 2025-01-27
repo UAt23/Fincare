@@ -2,6 +2,7 @@ import { configureStore, Middleware } from '@reduxjs/toolkit';
 import settingsReducer from './settingsSlice';
 import transactionsReducer from './transactionsSlice';
 import categoryBudgetsReducer from './categoryBudgetsSlice';
+import budgetReducer from './budgetSlice';
 import { storage } from '../services/storage';
 
 // Middleware to save state changes to AsyncStorage
@@ -28,6 +29,7 @@ export const store = configureStore({
     settings: settingsReducer,
     transactions: transactionsReducer,
     categoryBudgets: categoryBudgetsReducer,
+    budget: budgetReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(persistenceMiddleware),

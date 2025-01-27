@@ -121,6 +121,8 @@ export default function AnalyticsScreen() {
     dispatch(addMockData(selectedMonth));
   };
 
+  const { incomeAllocations } = useAppSelector(state => state.budget);
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -262,6 +264,16 @@ export default function AnalyticsScreen() {
           </View>
         </View>
       </View>
+
+      {/* Income Allocation Section */}
+      {incomeAllocations.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Income Allocation vs Actual Spending</Text>
+          <View style={styles.comparisonChart}>
+            {/* Add comparison between allocated percentages and actual spending */}
+          </View>
+        </View>
+      )}
 
       {/* We'll add more sections here */}
     </ScrollView>
@@ -411,5 +423,11 @@ const styles = StyleSheet.create({
     color: colors.textLight,
     fontSize: 14,
     fontWeight: '600',
+  },
+  section: {
+    padding: 20,
+  },
+  comparisonChart: {
+    // Add styles for the comparison chart
   },
 }); 

@@ -253,6 +253,16 @@ export default function TransactionsScreen() {
     });
   };
 
+  const upcomingRecurring = useMemo(() => {
+    // Implement logic to fetch upcoming recurring transactions
+    return [];
+  }, []);
+
+  const formatDate = (date: Date) => {
+    // Implement date formatting logic
+    return '';
+  };
+
   return (
     <ScrollView 
       style={styles.container}
@@ -339,6 +349,24 @@ export default function TransactionsScreen() {
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Transactions</Text>
               <Text style={styles.budgetText}>{monthTransactions.length} transactions</Text>
+            </View>
+            <View style={styles.recurringSection}>
+              <Text style={styles.sectionTitle}>Upcoming Recurring</Text>
+              {upcomingRecurring.map(transaction => (
+                <View key={transaction.id} style={styles.recurringItem}>
+                  <View style={styles.recurringInfo}>
+                    <Text style={styles.recurringName}>{transaction.category}</Text>
+                    <Text style={styles.recurringDate}>Next: {formatDate(transaction.nextDate)}</Text>
+                  </View>
+                  <Text style={[
+                    styles.recurringAmount,
+                    { color: transaction.type === 'income' ? colors.success : colors.error }
+                  ]}>
+                    {transaction.type === 'income' ? '+' : '-'}
+                    {currency.symbol}{transaction.amount.toFixed(2)}
+                  </Text>
+                </View>
+              ))}
             </View>
             <TransactionsList 
               transactions={monthTransactions || []}
@@ -511,5 +539,103 @@ const styles = StyleSheet.create({
   },
   periodSelector: {
     marginTop: 16,
+  },
+  recurringSection: {
+    padding: 20,
+  },
+  recurringItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  recurringInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  recurringName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  recurringDate: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  recurringAmount: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  recurringLabel: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  recurringAmount: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  incomeText: {
+    color: colors.success,
+  },
+  expenseText: {
+    color: colors.error,
+  },
+  moreGoalsText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  savingsPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  savingsGoalItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  goalName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  progressBar: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  recurringPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  recurringItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  recurringLabel: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  recurringAmount: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  recurringName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  recurringDate: {
+    fontSize: 14,
+    color: colors.textSecondary,
   },
 }); 

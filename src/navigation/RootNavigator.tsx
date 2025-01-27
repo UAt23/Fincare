@@ -7,6 +7,9 @@ import AllExpensesScreen from '../screens/AllExpensesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import CurrencyScreen from '../screens/CurrencyScreen';
 import CategoryBudgetsScreen from '../screens/CategoryBudgetsScreen';
+import IncomeAllocationScreen from '../screens/IncomeAllocationScreen';
+import SavingsGoalsScreen from '../screens/SavingsGoalsScreen';
+import RecurringTransactionsScreen from '../screens/RecurringTransactionsScreen';
 
 export type RootStackParamList = {
   Main: undefined;
@@ -27,6 +30,9 @@ export type RootStackParamList = {
   Profile: undefined;
   Currency: undefined;
   CategoryBudgets: undefined;
+  IncomeAllocation: undefined;
+  SavingsGoals: undefined;
+  RecurringTransactions: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -87,6 +93,21 @@ export default function RootNavigator() {
           headerShown: true,
           title: 'Category Budgets',
         }}
+      />
+      <Stack.Screen 
+        name="IncomeAllocation" 
+        component={IncomeAllocationScreen} 
+        options={{ title: 'Income Allocation' }}
+      />
+      <Stack.Screen 
+        name="SavingsGoals" 
+        component={SavingsGoalsScreen} 
+        options={{ title: 'Savings Goals' }}
+      />
+      <Stack.Screen 
+        name="RecurringTransactions" 
+        component={RecurringTransactionsScreen} 
+        options={{ title: 'Recurring Transactions' }}
       />
     </Stack.Navigator>
   );

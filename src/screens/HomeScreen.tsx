@@ -6,12 +6,46 @@ import { useAppDispatch, useAppSelector } from '../hooks/useAppStore';
 import { fetchTransactions, fetchAllTransactions } from '../store/transactionsSlice';
 import TransactionsList from '../components/TransactionsList';
 import { useNavigation } from '@react-navigation/native';
+import { calculateIncomeAllocation, calculateMonthlyNeeded } from '../utils/budgetUtils';
+
+// Quick access feature card component
+const FeatureCard = ({ 
+  icon, 
+  title, 
+  onPress 
+}: { 
+  icon: string, 
+  title: string, 
+  onPress: () => void 
+}) => (
+  <TouchableOpacity 
+    style={styles.featureCard} 
+    onPress={onPress}
+  >
+    <View style={styles.featureCardContent}>
+      <View style={styles.featureIconContainer}>
+        <Ionicons 
+          name={icon} 
+          size={24} 
+          color={colors.primary} 
+        />
+      </View>
+      <Text style={styles.featureCardText}>{title}</Text>
+      <Ionicons 
+        name="chevron-forward" 
+        size={20} 
+        color={colors.textSecondary} 
+      />
+    </View>
+  </TouchableOpacity>
+);
 
 export default function HomeScreen() {
   const dispatch = useAppDispatch();
   const { items: transactions = [], loading } = useAppSelector((state) => state.transactions);
   const navigation = useNavigation();
   const { currency } = useAppSelector(state => state.settings);
+  const { incomeAllocations, savingsGoals, recurringTransactions } = useAppSelector(state => state.budget);
 
   useEffect(() => {
     // Fetch all transactions for accurate statistics
@@ -81,6 +115,31 @@ export default function HomeScreen() {
       .slice(0, 5);
   }, [transactions]);
 
+  // Calculate monthly recurring expenses/income
+  const monthlyRecurring = useMemo(() => {
+    return recurringTransactions.reduce(
+      (acc, transaction) => {
+        const monthlyAmount = calculateMonthlyAmount(transaction.amount, transaction.frequency);
+        if (transaction.type === 'income') {
+          acc.income += monthlyAmount;
+        } else {
+          acc.expenses += monthlyAmount;
+        }
+        return acc;
+      },
+      { income: 0, expenses: 0 }
+    );
+  }, [recurringTransactions]);
+
+  // Calculate savings progress
+  const savingsProgress = useMemo(() => {
+    return savingsGoals.map(goal => ({
+      ...goal,
+      progress: (goal.currentAmount / goal.targetAmount) * 100,
+      monthlyNeeded: calculateMonthlyNeeded(goal.targetAmount, goal.currentAmount, goal.targetDate)
+    }));
+  }, [savingsGoals]);
+
   return (
     <ScrollView 
       style={styles.container}
@@ -105,6 +164,28 @@ export default function HomeScreen() {
             <Text style={styles.name}>Priscilla</Text>
             <Text style={styles.message}>{greetingMessage}</Text>
           </View>
+        </View>
+      </View>
+
+      {/* New Feature Quick Access Section */}
+      <View style={styles.featuresSection}>
+        <Text style={styles.featuresSectionTitle}>Financial Tools</Text>
+        <View style={styles.featuresGrid}>
+          <FeatureCard 
+            icon="wallet" 
+            title="Income Allocation" 
+            onPress={() => navigation.navigate('IncomeAllocation')}
+          />
+          <FeatureCard 
+            icon="trophy" 
+            title="Savings Goals" 
+            onPress={() => navigation.navigate('SavingsGoals')}
+          />
+          <FeatureCard 
+            icon="repeat" 
+            title="Recurring Transactions" 
+            onPress={() => navigation.navigate('RecurringTransactions')}
+          />
         </View>
       </View>
 
@@ -135,6 +216,93 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Financial Insights Section */}
+      {(incomeAllocations.length > 0 || savingsGoals.length > 0 || recurringTransactions.length > 0) && (
+        <View style={styles.insightsSection}>
+          <Text style={styles.sectionTitle}>Financial Insights</Text>
+          
+          {/* Income Allocation Summary */}
+          {incomeAllocations.length > 0 && (
+            <TouchableOpacity 
+              style={styles.insightCard}
+              onPress={() => navigation.navigate('IncomeAllocation')}
+            >
+              <View style={styles.insightHeader}>
+                <Ionicons name="pie-chart" size={24} color={colors.primary} />
+                <Text style={styles.insightTitle}>Income Allocation</Text>
+              </View>
+              <Text style={styles.insightDescription}>
+                Your income is allocated across {incomeAllocations.length} categories
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Savings Goals Progress */}
+          {savingsProgress.length > 0 && (
+            <TouchableOpacity 
+              style={styles.insightCard}
+              onPress={() => navigation.navigate('SavingsGoals')}
+            >
+              <View style={styles.insightHeader}>
+                <Ionicons name="trophy" size={24} color={colors.primary} />
+                <Text style={styles.insightTitle}>Savings Goals</Text>
+              </View>
+              <View style={styles.savingsPreview}>
+                {savingsProgress.slice(0, 2).map(goal => {
+                  const targetDate = new Date(goal.targetDate);
+                  return (
+                  <View key={goal.id} style={styles.savingsGoalItem}>
+                    <Text style={styles.goalName}>{goal.name}</Text>
+                    <View style={styles.progressBar}>
+                      <View 
+                        style={[
+                          styles.progressFill,
+                          { width: `${Math.min(goal.progress, 100)}%` }
+                        ]} 
+                      />
+                    </View>
+                    <Text style={styles.progressText}>{goal.progress.toFixed(1)}%</Text>
+                  </View>
+                  );
+                })}
+                {savingsProgress.length > 2 && (
+                  <Text style={styles.moreGoalsText}>
+                    +{savingsProgress.length - 2} more goals
+                  </Text>
+                )}
+              </View>
+            </TouchableOpacity>
+          )}
+
+          {/* Recurring Transactions Summary */}
+          {recurringTransactions.length > 0 && (
+            <TouchableOpacity 
+              style={styles.insightCard}
+              onPress={() => navigation.navigate('RecurringTransactions')}
+            >
+              <View style={styles.insightHeader}>
+                <Ionicons name="repeat" size={24} color={colors.primary} />
+                <Text style={styles.insightTitle}>Monthly Recurring</Text>
+              </View>
+              <View style={styles.recurringPreview}>
+                <View style={styles.recurringItem}>
+                  <Text style={styles.recurringLabel}>Income</Text>
+                  <Text style={[styles.recurringAmount, styles.incomeText]}>
+                    +{currency.symbol}{monthlyRecurring.income.toFixed(2)}
+                  </Text>
+                </View>
+                <View style={styles.recurringItem}>
+                  <Text style={styles.recurringLabel}>Expenses</Text>
+                  <Text style={[styles.recurringAmount, styles.expenseText]}>
+                    -{currency.symbol}{monthlyRecurring.expenses.toFixed(2)}
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
 
       <View style={styles.transactionsContainer}>
         <View style={styles.transactionsHeader}>
@@ -347,5 +515,134 @@ const styles = StyleSheet.create({
     color: colors.textLight,
     fontSize: 13,
     fontWeight: '500',
+  },
+  featuresSection: {
+    paddingHorizontal: 20,
+    marginTop: 20,
+  },
+  featuresSectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 15,
+    color: colors.textPrimary,
+  },
+  featuresGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  featureCard: {
+    backgroundColor: colors.cardLight,
+    borderRadius: 12,
+    width: '30%',
+    padding: 12,
+    alignItems: 'center',
+  },
+  featureCardContent: {
+    alignItems: 'center',
+  },
+  featureIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: colors.cardMidLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  featureCardText: {
+    fontSize: 12,
+    color: colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: 5,
+  },
+  insightsSection: {
+    padding: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 15,
+    color: colors.textPrimary,
+  },
+  insightCard: {
+    backgroundColor: colors.cardLight,
+    borderRadius: 16,
+    padding: 15,
+    marginBottom: 15,
+  },
+  insightHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  insightTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 10,
+    color: colors.textPrimary,
+  },
+  insightDescription: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  savingsPreview: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  savingsGoalItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  goalName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  progressBar: {
+    width: 100,
+    height: 10,
+    backgroundColor: colors.cardMidLight,
+    borderRadius: 5,
+    marginHorizontal: 10,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: 5,
+  },
+  progressText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  moreGoalsText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  recurringPreview: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  recurringItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  recurringLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  recurringAmount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  incomeText: {
+    color: colors.success,
+  },
+  expenseText: {
+    color: colors.error,
   },
 }); 

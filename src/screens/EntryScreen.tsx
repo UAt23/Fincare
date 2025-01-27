@@ -217,9 +217,9 @@ export default function EntryScreen({ navigation }: Props) {
 
         <Dropdown
           label="Store/Source"
-          value={formData.store}
+          selectedValue={formData.store}
           options={stores}
-          onChange={(store) => setFormData(prev => ({ ...prev, store }))}
+          onValueChange={(store) => setFormData(prev => ({ ...prev, store }))}
           placeholder="Select store or income source"
           canAdd
           onAddNew={(newStore) => dispatch(addStore(newStore))}
@@ -227,9 +227,9 @@ export default function EntryScreen({ navigation }: Props) {
 
         <Dropdown
           label="Category"
-          value={formData.category}
+          selectedValue={formData.category}
           options={categories}
-          onChange={(category) => setFormData(prev => ({ ...prev, category }))}
+          onValueChange={(category) => setFormData(prev => ({ ...prev, category }))}
           placeholder="Select category"
           canAdd
           onAddNew={(newCategory) => dispatch(addCategory(newCategory))}
