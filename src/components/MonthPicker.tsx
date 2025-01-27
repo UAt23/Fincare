@@ -4,25 +4,26 @@ import { colors } from '../theme/colors';
 import { useState, useRef } from 'react';
 
 type Props = {
-  value: Date;
-  onChange: (date: Date) => void;
+  value: string;
+  onChange: (date: string) => void;
 };
 
 export default function MonthPicker({ value, onChange }: Props) {
   const [showPicker, setShowPicker] = useState(false);
-  const [selectedYear, setSelectedYear] = useState(value.getFullYear());
+  const dateObj = new Date(value);
+  const [selectedYear, setSelectedYear] = useState(dateObj.getFullYear());
   const yearAnimation = useRef(new Animated.Value(1)).current;
 
   const handlePrevMonth = () => {
     const newDate = new Date(value);
-    newDate.setMonth(value.getMonth() - 1);
-    onChange(newDate);
+    newDate.setMonth(newDate.getMonth() - 1);
+    onChange(newDate.toISOString());
   };
 
   const handleNextMonth = () => {
     const newDate = new Date(value);
-    newDate.setMonth(value.getMonth() + 1);
-    onChange(newDate);
+    newDate.setMonth(newDate.getMonth() + 1);
+    onChange(newDate.toISOString());
   };
 
   const handlePrevYear = () => {
@@ -60,18 +61,18 @@ export default function MonthPicker({ value, onChange }: Props) {
   const handleToday = () => {
     const today = new Date();
     setSelectedYear(today.getFullYear());
-    onChange(today);
+    onChange(today.toISOString());
     setShowPicker(false);
   };
 
-  const monthName = value.toLocaleString('default', { month: 'long' });
-  const year = value.getFullYear();
+  const monthName = dateObj.toLocaleString('default', { month: 'long' });
+  const year = dateObj.getFullYear();
 
-  const months = Array.from({ length: 12 }, (_, i) => {
+  const months: Array<{ label: string; value: string }> = Array.from({ length: 12 }, (_, i: number) => {
     const date = new Date(selectedYear, i, 1);
     return {
       label: date.toLocaleString('default', { month: 'long' }),
-      value: date,
+      value: date.toISOString(),
     };
   });
 
@@ -145,7 +146,7 @@ export default function MonthPicker({ value, onChange }: Props) {
               renderItem={({ item }) => {
                 const isSelected = 
                   item.label === monthName && 
-                  selectedYear === value.getFullYear();
+                  selectedYear === dateObj.getFullYear();
                 
                 return (
                   <TouchableOpacity
@@ -223,7 +224,7 @@ const styles = StyleSheet.create({
   yearText: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.textLigth,
+    color: colors.textLight,
   },
   monthItem: {
     padding: 16,

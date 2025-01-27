@@ -11,12 +11,14 @@ interface TransactionsState {
   items: Transaction[];
   loading: boolean;
   error: string | null;
+  categories: any[]; // Assuming a simple structure for categories
 }
 
 const initialState: TransactionsState = {
   items: [],
   loading: false,
   error: null,
+  categories: [],
 };
 
 export const fetchTransactions = createAsyncThunk(
@@ -100,6 +102,14 @@ const transactionsSlice = createSlice({
     addMockData: (state, action: PayloadAction<Date>) => {
       const mockTransactions = generateMockTransactions(action.payload);
       state.items = [...mockTransactions, ...state.items];
+    },
+    setIncomeAllocation: (state, action) => {
+      const { categoryId, amount } = action.payload;
+      const category = state.categories.find(cat => cat.id === categoryId);
+      if (category) {
+        console.log(category);
+        category.budget += amount;
+      }
     },
   },
   extraReducers: (builder) => {

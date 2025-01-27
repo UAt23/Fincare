@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { setCategoryBudget } from './categoryBudgetsSlice';
 import { 
   BudgetState, 
   IncomeAllocation, 
@@ -25,12 +26,6 @@ const budgetSlice = createSlice({
       percentage: number;
     }>) => {
       const { category, amount, percentage } = action.payload;
-
-      // Update category budgets
-      if (!state.categoryBudgets[category]) {
-        state.categoryBudgets[category] = 0;
-      }
-      state.categoryBudgets[category] += amount;
 
       // Add allocation
       state.incomeAllocations.push({

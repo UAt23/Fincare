@@ -9,9 +9,11 @@ import { categoryIcons } from '../utils/categories';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/RootNavigator';
-import { fetchTransactions, fetchAllTransactions } from '../store/transactionsSlice';
+import { fetchTransactions, fetchAllTransactions, setIncomeAllocation } from '../store/transactionsSlice';
 import Dropdown from '../components/Dropdown';
 import ExpenseBarChart from '../components/ExpenseBarChart';
+import { Button } from 'react-native';
+import { getBudgetForMonth } from '../utils/budgetUtils';
 
 type Period = 'week' | 'month';
 
@@ -20,8 +22,8 @@ export default function TransactionsScreen() {
   const dispatch = useAppDispatch();
   const { items: transactions = [], loading } = useAppSelector((state) => state.transactions);
   const { currency } = useAppSelector(state => state.settings);
-  const [selectedMonth, setSelectedMonth] = useState(new Date());
-  const allBudgets = useAppSelector(state => state.categoryBudgets.budgets);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString());
+  const categoryBudgets = useAppSelector((state) => state.categoryBudgets.budgets);
   const [selectedPeriod, setSelectedPeriod] = useState<Period>('month');
 
   useEffect(() => {
@@ -55,14 +57,15 @@ export default function TransactionsScreen() {
       }));
   }, [transactions]);
 
-  const monthKey = `${selectedMonth.getFullYear()}-${String(selectedMonth.getMonth() + 1).padStart(2, '0')}`;
+  const monthKey = `${new Date(selectedMonth).getFullYear()}-${String(new Date(selectedMonth).getMonth() + 1).padStart(2, '0')}`;
 
   // Filter transactions for selected month
   const monthTransactions = transactions.filter(t => {
     const transactionDate = new Date(t.date);
+    const selectedDate = new Date(selectedMonth);
     return (
-      transactionDate.getMonth() === selectedMonth.getMonth() &&
-      transactionDate.getFullYear() === selectedMonth.getFullYear()
+      transactionDate.getMonth() === selectedDate.getMonth() &&
+      transactionDate.getFullYear() === selectedDate.getFullYear()
     );
   });
 
@@ -79,8 +82,14 @@ export default function TransactionsScreen() {
     .filter(t => t.type === 'expense')
     .reduce((acc, t) => {
       if (!acc[t.category]) {
-        const categoryBudgets = allBudgets[t.category] || [];
-        const budget = categoryBudgets.find(b => b.month === monthKey)?.amount || 0;
+        const categoryBudgetsForMonth = categoryBudgets[t.category] || [];
+        const budget = getBudgetForMonth(categoryBudgetsForMonth, monthKey);
+        console.log('Category budget data:', {
+          category: t.category,
+          budgets: categoryBudgetsForMonth,
+          monthKey,
+          calculatedBudget: budget
+        });
         acc[t.category] = { total: 0, budget };
       }
       acc[t.category].total += t.amount;

@@ -312,6 +312,17 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Add empty state when transactions array is empty */}
+        {(!transactions || transactions.length === 0) && (
+          <View style={styles.emptyState}>
+            <Ionicons name="receipt-outline" size={64} color={colors.textTertiary} />
+            <Text style={styles.emptyStateTitle}>No Transactions</Text>
+            <Text style={styles.emptyStateText}>
+              You don't have any transactions for this month
+            </Text>
+          </View>
+        )}
+
         <TransactionsList 
           transactions={recentTransactions}
           onItemPress={(transaction) => {
@@ -644,5 +655,22 @@ const styles = StyleSheet.create({
   },
   expenseText: {
     color: colors.error,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginTop: 16,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 8,
+    textAlign: 'center',
   },
 }); 

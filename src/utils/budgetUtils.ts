@@ -76,4 +76,11 @@ export const calculateMonthlyNeeded = (
 
   const remainingAmount = targetAmount - currentAmount;
   return remainingAmount / monthsRemaining;
+};
+
+export const getBudgetForMonth = (budgets, month) => {
+    console.log('Getting budget for month:', { budgets, month });
+    const budget = budgets.find(b => b.month === month || b.month.startsWith(month));
+    console.log('Found budget:', budget);
+    return budget ? budget.amount : 0;
 }; 

@@ -13,7 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppDispatch, useAppSelector } from '../hooks/useAppStore';
 import { 
   addIncomeAllocation, 
-  removeIncomeAllocation 
+  removeIncomeAllocation,
+  setIncomeAllocation
 } from '../store/budgetSlice';
 import { 
   calculateIncomeAllocation 
@@ -23,6 +24,7 @@ import { colors } from '../theme/colors';
 import IncomeAllocationChart from '../components/IncomeAllocationChart';
 import Dropdown from '../components/Dropdown';
 import { useNavigation } from '@react-navigation/native';
+import { setCategoryBudget } from '../store/categoryBudgetsSlice';
 
 const { height } = Dimensions.get('window');
 
@@ -91,13 +93,19 @@ export default function IncomeAllocationScreen() {
         return;
       }
 
+      // Dispatch both actions
       dispatch(addIncomeAllocation({ 
         category: selectedCategory, 
         amount,
         percentage
       }));
 
-      // Only reset the amount input, keep the category selected
+      // Dispatch setCategoryBudget action
+      dispatch(setCategoryBudget({
+        category: selectedCategory,
+        amount
+      }));
+
       setSelectedAmount('');
     } catch (error) {
       Alert.alert('Error', 'Invalid amount format');

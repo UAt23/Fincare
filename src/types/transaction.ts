@@ -13,8 +13,12 @@ export interface CreateTransactionDTO {
 export interface Transaction {
   id: string;
   amount: number;
-  type: 'income' | 'expense';
+  type: TransactionType;
   category: string;
   date: string;
   note?: string;
+  store: string;
+  currency: Currency;
+  originalAmount: number;
+  originalCurrency: Currency;
 } 

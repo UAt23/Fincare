@@ -23,9 +23,10 @@ const mockStores = [
   'Company Inc',
 ];
 
-export const generateMockTransactions = (month: Date): Transaction[] => {
-  const year = month.getFullYear();
-  const monthIndex = month.getMonth();
+export const generateMockTransactions = (month: string): Transaction[] => {
+  const dateObj = new Date(month);
+  const year = dateObj.getFullYear();
+  const monthIndex = dateObj.getMonth();
   const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
   
   // Generate salary for the month
@@ -67,4 +68,10 @@ export const generateMockTransactions = (month: Date): Transaction[] => {
 
   // Sort by date
   return transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-}; 
+};
+
+export const categories = [
+    { id: 1, name: 'Groceries', budget: 0 },
+    { id: 2, name: 'Utilities', budget: 0 },
+    // Add more categories as needed
+]; 
