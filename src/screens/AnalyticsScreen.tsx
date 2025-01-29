@@ -126,7 +126,10 @@ export default function AnalyticsScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <MonthPicker value={selectedMonth} onChange={setSelectedMonth} />
+        <MonthPicker 
+          value={selectedMonth.toISOString()} 
+          onChange={(dateStr: string) => setSelectedMonth(new Date(dateStr))} 
+        />
       </View>
 
       {/* Time Frame Selector */}
@@ -430,4 +433,10 @@ const styles = StyleSheet.create({
   comparisonChart: {
     // Add styles for the comparison chart
   },
-}); 
+});
+
+// Before using date.getFullYear(), always check if the date is valid
+const getYear = (date: Date | undefined | null) => {
+  if (!date) return new Date().getFullYear(); // fallback to current year
+  return new Date(date).getFullYear();
+} 

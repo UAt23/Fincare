@@ -1,10 +1,10 @@
 import { Transaction, CreateTransactionDTO } from '../../types/transaction';
 import { Currency, DEFAULT_CURRENCY } from '../../types/common';
 import { generateId } from '../../utils/id';
-import { mockedMyTransactions } from '../../utils/mockedMy';
+import { mockTransactions } from '../../utils/mockedMy';
 
 // Mock data with proper typing and structure
-const MOCK_TRANSACTIONS: Transaction[] = mockedMyTransactions;
+const MOCK_TRANSACTIONS: Transaction[] = mockTransactions;
 
 export const transactionService = {
   async createTransaction(data: CreateTransactionDTO & {

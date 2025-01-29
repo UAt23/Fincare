@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from '../hooks/useAppStore';
 import { fetchTransactions, fetchAllTransactions } from '../store/transactionsSlice';
 import TransactionsList from '../components/TransactionsList';
 import { useNavigation } from '@react-navigation/native';
-import { calculateIncomeAllocation, calculateMonthlyNeeded } from '../utils/budgetUtils';
+import { calculateIncomeAllocation, calculateMonthlyNeeded, calculateMonthlyAmount } from '../utils/budgetUtils';
 
 // Quick access feature card component
 const FeatureCard = ({ 
@@ -26,16 +26,11 @@ const FeatureCard = ({
       <View style={styles.featureIconContainer}>
         <Ionicons 
           name={icon} 
-          size={24} 
+          size={32} 
           color={colors.primary} 
         />
       </View>
       <Text style={styles.featureCardText}>{title}</Text>
-      <Ionicons 
-        name="chevron-forward" 
-        size={20} 
-        color={colors.textSecondary} 
-      />
     </View>
   </TouchableOpacity>
 );
@@ -140,6 +135,11 @@ export default function HomeScreen() {
     }));
   }, [savingsGoals]);
 
+  const handleRecurringTransaction = (data: any) => {
+    const monthlyAmount = calculateMonthlyAmount(data.amount, data.frequency);
+    // Rest of your transaction handling code...
+  };
+
   return (
     <ScrollView 
       style={styles.container}
@@ -154,7 +154,7 @@ export default function HomeScreen() {
               <Ionicons 
                 name="person" 
                 size={32} 
-                color={colors.textLight}
+                color={colors.card}
               />
             </View>
             <View style={styles.profileStatus} />
@@ -196,15 +196,16 @@ export default function HomeScreen() {
             {currency.symbol}{stats.todayExpenses.toFixed(2)}
           </Text>
           <Text style={styles.statCompare}>
-            {Math.abs(stats.todayExpenses - stats.yesterdayExpenses)}
+          {currency.symbol}{Math.abs(stats.todayExpenses - stats.yesterdayExpenses)}
+          {stats.todayExpenses > stats.yesterdayExpenses ? ' higher' : ' lower'}
           </Text>
           <Text style={styles.statCompare}>
-            {stats.todayExpenses > stats.yesterdayExpenses ? 'higher' : 'lower'} than yesterday
+            than yesterday
           </Text>
         </View>
 
         <View style={[styles.statCard, { backgroundColor: colors.primary }]}>
-          <Text style={[styles.statLabel, { color: colors.textLight }]}>Month Total</Text>
+          <Text style={[styles.statLabel, { color: colors.textLight }]}>Month Total Expenses</Text>
           <Text style={[styles.statAmount, { color: colors.textLight }]}>
             {currency.symbol}{stats.monthExpenses.toFixed(2)}
           </Text>
@@ -368,7 +369,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     borderWidth: 2,
     borderColor: colors.primary,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -543,6 +544,8 @@ const styles = StyleSheet.create({
   },
   featureCard: {
     backgroundColor: colors.cardLight,
+    borderColor: colors.cardMedium,
+    borderWidth: 4,
     borderRadius: 12,
     width: '30%',
     padding: 12,
@@ -555,7 +558,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: colors.cardMidLight,
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,

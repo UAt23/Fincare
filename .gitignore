@@ -35,3 +35,4 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 src/utils/mockedMy.ts
+package-lock.json

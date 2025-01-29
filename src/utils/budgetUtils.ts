@@ -47,15 +47,20 @@ export function predictBudgetAdjustment(
   };
 }
 
-export const calculateMonthlyAmount = (amount: number, frequency: string): number => {
+/**
+ * Calculates the monthly amount for a recurring transaction
+ * @param amount The base amount of the transaction
+ * @param frequency The frequency of the transaction (weekly, monthly, yearly)
+ * @returns The calculated monthly amount
+ */
+export const calculateMonthlyAmount = (amount: number, frequency: 'weekly' | 'monthly' | 'yearly'): number => {
   switch (frequency) {
-    case 'daily':
-      return amount * 30; // Approximate monthly amount
     case 'weekly':
-      return amount * 4; // Approximate monthly amount
-    case 'yearly':
-      return amount / 12;
+      return amount * 52 / 12; // Convert weekly to monthly (52 weeks / 12 months)
     case 'monthly':
+      return amount;
+    case 'yearly':
+      return amount / 12; // Convert yearly to monthly
     default:
       return amount;
   }
