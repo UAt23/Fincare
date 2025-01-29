@@ -1,44 +1,45 @@
-import { useState, useEffect } from 'react';
-import { Transaction, CreateTransactionDTO } from '../types/transaction';
-import { transactionService } from '../services/api/transactions';
+import { useState, useEffect, useCallback } from 'react';
+import { Transaction } from '../types/transaction';
+import { getTransactions, addTransaction } from '../services/api/transactions';
 
-export function useTransactions(limit?: number) {
+export const useTransactions = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadTransactions();
+  const fetchTransactions = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await getTransactions();
+      setTransactions(data);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch transactions');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  const loadTransactions = async () => {
+  const addNewTransaction = async (transaction: Transaction) => {
     try {
-      setLoading(true);
-      const data = await transactionService.getRecentTransactions(limit);
-      setTransactions(data);
+      await addTransaction(transaction);
+      await fetchTransactions(); // Refresh the list after adding
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load transactions');
-    } finally {
-      setLoading(false);
+      setError('Failed to add transaction');
+      console.error(err);
     }
   };
 
-  const addTransaction = async (data: CreateTransactionDTO) => {
-    try {
-      const newTransaction = await transactionService.createTransaction(data);
-      setTransactions(prev => [newTransaction, ...prev]);
-      return newTransaction;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create transaction');
-      throw err;
-    }
-  };
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
 
   return {
     transactions,
-    loading,
+    isLoading,
     error,
-    refresh: loadTransactions,
-    addTransaction,
+    refreshTransactions: fetchTransactions,
+    addTransaction: addNewTransaction,
   };
-} 
+}; 
