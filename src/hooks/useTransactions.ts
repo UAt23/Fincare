@@ -1,45 +1,47 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Transaction } from '../types/transaction';
-import { getTransactions, addTransaction } from '../services/api/transactions';
+import { Transaction, CreateTransactionDTO } from '../types/transaction';
+import { transactionService } from '../services/api/transactions';
 
-export const useTransactions = () => {
+export function useTransactions(limit?: number) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchTransactions = useCallback(async () => {
+  const loadTransactions = useCallback(async () => {
     try {
-      setIsLoading(true);
-      const data = await getTransactions();
+      setLoading(true);
+      const data = limit 
+        ? await transactionService.getRecentTransactions(limit)
+        : await transactionService.getAllTransactions();
       setTransactions(data);
       setError(null);
     } catch (err) {
-      setError('Failed to fetch transactions');
-      console.error(err);
+      setError(err instanceof Error ? err.message : 'Failed to load transactions');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  }, []);
+  }, [limit]);
 
-  const addNewTransaction = async (transaction: Transaction) => {
+  const addTransaction = async (data: CreateTransactionDTO) => {
     try {
-      await addTransaction(transaction);
-      await fetchTransactions(); // Refresh the list after adding
+      const newTransaction = await transactionService.createTransaction(data);
+      await loadTransactions(); // Refresh the list after adding
+      return newTransaction;
     } catch (err) {
-      setError('Failed to add transaction');
-      console.error(err);
+      setError(err instanceof Error ? err.message : 'Failed to create transaction');
+      throw err;
     }
   };
 
   useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
+    loadTransactions();
+  }, [loadTransactions]);
 
   return {
     transactions,
-    isLoading,
+    loading,
     error,
-    refreshTransactions: fetchTransactions,
-    addTransaction: addNewTransaction,
+    refresh: loadTransactions,
+    addTransaction,
   };
-}; 
+} 
